@@ -1,0 +1,97 @@
+[cols="1a"]
+|===
+
+|
+[frame="none"]
+[cols="1,1"]
+!===
+! 用例编号：MALL-AFTERSALE-004
+! 用例名称：取消售后 (Cancel After-sales)
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 级别: 用户目标 (User Goal)
+!===
+
+|
+[frame="none"]
+[cols="2"]
+!===
+! 包： 商户-管理售后
+! 参与者：商户
+!===
+
+|
+[frame="none"]
+[cols="1"]
+!===
+! 描述： 商户取消售后 (Merchant Cancels After-sales)
+! 触发事件: 服务商取消服务单 (Merchant Cancels After-sales)
+!===
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 主成功场景
+!===
+
+|
+[frame="none"]
+[cols="1,4,2", options="header"]
+!===
+! 步骤 ! 描述 ! 信息
+
+! 1
+! 系统显示所有未完成的售后单
+! 售后编号、商品名称、售后类型
+
+! 2
+! 商户选择售后单取消
+!
+
+! 3
+! 系统显示该售后单的详细信息
+! 售后编号、商品名称、顾客姓名、售后类型、顾客申请原因、相关图片
+
+! 4
+! 商户确认取消该售后单
+! 取消原因
+
+! 5
+! 系统更新该售后单状态为"已取消"
+!
+!===
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 扩展场景
+!===
+
+|
+[frame="none"]
+[cols="1,4,2", options="header"]
+
+!===
+! 步骤 ! 描述 ! 信息
+
+! 5a
+! 售后单的状态不可取消
+!
+
+! 5a.1
+! 系统返回不可取消的售后单
+! 售后编号、商品名称、顾客姓名、售后类型、顾客申请原因、相关图片
+!===
+
+|
+[frame="none"]
+[cols="1"]
+!===
+! 其他:
+!===
+|===

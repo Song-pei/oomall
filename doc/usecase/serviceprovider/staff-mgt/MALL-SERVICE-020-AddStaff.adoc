@@ -1,0 +1,86 @@
+[cols="1a"]
+|===
+
+|
+[frame="none"]
+[cols="1,1"]
+!===
+! 用例编号：MALL-SERVICE-020
+! 用例名称：增加人员账号 (Add Staff Account)
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 级别: 用户目标 (User Goal)
+!===
+
+|
+[frame="none"]
+[cols="2"]
+!===
+! 包： 服务商(Service Provider)
+! 参与者：服务商(Service Provider)
+!===
+
+|
+[frame="none"]
+[cols="1"]
+!===
+! 描述：服务商增加人员账号 (Service Provider adds staff account)
+! 触发事件:服务商点击新增人员账号 (Service Provider Adds New Staff Account)
+!===
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 主成功场景
+!===
+
+|
+[frame="none"]
+[cols="1,4,2", options="header"]
+!===
+! 步骤 ! 描述 ! 信息
+
+! 1
+! 服务商增加人员账号
+! 账号、账户名称、密码、账号描述、权限
+
+! 2
+!系统提示新增成功
+!
+
+!===
+
+|
+[frame="none"]
+[cols="1", options="header"]
+!===
+! 扩展场景
+!===
+
+|
+[frame="none"]
+[cols="1,4,2", options="header"]
+
+!===
+! 步骤 ! 描述 ! 信息
+! 2a
+! 服务商人员账号数量达到上限
+!
+
+! 2a.1
+! 终止后续步骤
+!
+!===
+
+|
+[frame="none"]
+[cols="1"]
+!===
+! 其他:
+! 需要调用权限管理系统
+!===
+|===

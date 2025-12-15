@@ -1,0 +1,9 @@
+FROM alpine:latest
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk update && apk add --no-cache openjdk21="21.0.3_p9-r0" --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+

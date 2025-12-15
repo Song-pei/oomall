@@ -1,0 +1,1 @@
+docker stack deploy -c system-service.yml --with-registry-auth system

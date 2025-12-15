@@ -1,0 +1,54 @@
+== 3.4 平台管理人员
+
+image::platform/平台管理人员用例总图.png[]
+
+=== 3.4.1 管理商户
+
+image::platform/管理商户.png[]
+include::platform/shop-mgt/MALL-SHOP-008-ReviewMerchantAccountOpening.adoc[]
+include::platform/shop-mgt/MALL-SHOP-009-ReviewMerchantChange.adoc[]
+include::platform/shop-mgt/MALL-SHOP-011-SuspendMerchant.adoc[]
+include::platform/shop-mgt/MALL-SHOP-012-RestoreMerchant.adoc[]
+
+=== 3.4.2 管理商品
+
+image::platform/管理商品.png[]
+
+include::platform/product-mgt/MALL-PRODUCT-012-ReviewNewProduct.adoc[]
+include::platform/product-mgt/MALL-PRODUCT-013-ReviewChangedProduct.adoc[]
+include::platform/product-mgt/MALL-PRODUCT-014-EstablishProductCategories.adoc[]
+include::platform/product-mgt/MALL-PRODUCT-015-DeleteProductCategory.adoc[]
+include::platform/product-mgt/MALL-PRODUCT-016-ModifyProductCategory.adoc[]
+include::platform/product-mgt/MALL-PRODUCT-017-QueryProduct.adoc[]
+
+
+=== 3.4.3 管理活动
+
+image::platform/管理活动.png[]
+
+include::platform/activity-mgt/MALL-PRODUCT-018-ReviewActivity.adoc[]
+王浩东
+include::platform/activity-mgt/MALL-PRODUCT-019-QueryActivity.adoc[]
+
+=== 3.4.4 管理顾客
+
+image::platform/管理顾客.png[]
+
+include::platform/customer-mgt/MALL-CUST-013-BanCustomer.adoc[]
+include::platform/customer-mgt/MALL-CUST-023-UnbanCustomer.adoc[]
+include::platform/customer-mgt/MALL-CUST-014-QueryCustomer.adoc[]
+include::platform/customer-mgt/MALL-CUST-015-DeregisterCustomer.adoc[]
+
+=== 3.4.5 管理服务商
+
+image::platform/管理服务商.png[]
+徐瑞婷
+include::platform/serviceprovider-mgt/MALL-SERVICE-015-QueryServiceProvider.adoc[]
+王浩东
+include::platform/serviceprovider-mgt/MALL-SERVICE-014-ReviewServiceProviderAccountChange.adoc[]
+王浩东
+include::platform/serviceprovider-mgt/MALL-SERVICE-017-RestoreServiceProvider.adoc[]
+王浩东
+include::platform/serviceprovider-mgt/MALL-SERVICE-016-SuspendServiceProvider.adoc[]
+宋浩元
+include::platform/serviceprovider-mgt/MALL-SERVICE-022-ReviewServiceProvider.adoc[]
