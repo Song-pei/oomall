@@ -10,11 +10,13 @@ TRUNCATE TABLE `aftersale_arbitration`;
 TRUNCATE TABLE `aftersale_history`;
 TRUNCATE TABLE `aftersale_order`;
 TRUNCATE TABLE `aftersale_package`;
+TRUNCATE TABLE `after_sales_order`;
 DROP TABLE IF EXISTS `aftersale_aftersale`;
 DROP TABLE IF EXISTS `aftersale_arbitration`;
 DROP TABLE IF EXISTS `aftersale_history`;
 DROP TABLE IF EXISTS `aftersale_order`;
 DROP TABLE IF EXISTS `aftersale_package`;
+DROP TABLE IF EXISTS `after_sales_order`;
 
 -- 重新启用外键约束检查
 SET FOREIGN_KEY_CHECKS = 1;

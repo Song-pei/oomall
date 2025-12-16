@@ -95,6 +95,9 @@ public enum ReturnNo {
     AFTERSALE_NOT_SELFSENDBACK(704, "(id=%d)不是自行寄回售后"),
     AFTERSALE_INARBITRATION(705, "售后(id=%d)在仲裁中"),
 
+    AFTERSALE_AUDIT_RESULT_EMPTY(706, "审核结果不能为空"),
+    AFTERSALE_NOT_LOGIN(707, "未登录或 token 为空"),
+
     /**************************************
      *  服务模块
      ************************************/
