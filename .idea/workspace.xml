@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52316957-3e79-4cf1-8b60-7822054f432d" name="Changes" comment="Changes" />
+    <list default="true" id="52316957-3e79-4cf1-8b60-7822054f432d" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/conf/mysql/sql/region.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/aaf15287-63d7-426a-b1bc-f424af13125f.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/aaf15287-63d7-426a-b1bc-f424af13125f.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Aftersale/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/aftersale/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Aftersale/clear_image.sh" beforeDir="false" afterPath="$PROJECT_DIR$/aftersale/clear_image.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Aftersale/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/aftersale/pom.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,52 +52,82 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;JUnit.AftersaleControllerTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.freight [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.gateway [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.logistics [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.oomall [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.oomall [install].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.payment [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.product [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.region [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.shop [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;发现新的/更新的数据库配置&quot;,
-    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;我会在意&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;F:/OOAD/OOMALL1-1&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;项目&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.importing&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
-    &quot;数据库脚本.aftersale.sql.executor&quot;: &quot;Run&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "JUnit.AftersaleControllerTest.auditAftersale.executor": "Run",
+    "JUnit.AftersaleControllerTest.executor": "Run",
+    "JUnit.AftersaleControllerTest.getAftersales.executor": "Run",
+    "JUnit.AftersaleOrderControllerTest.auditAftersale.executor": "Run",
+    "JUnit.AftersaleOrderControllerTest.auditAftersale_missingConfirm.executor": "Run",
+    "JUnit.AftersaleOrderControllerTest.auditAftersale_noToken.executor": "Run",
+    "JUnit.AftersaleOrderControllerTest.getAftersales.executor": "Run",
+    "Maven.aftersale [clean].executor": "Run",
+    "Maven.aftersale [install].executor": "Run",
+    "Maven.aftersale [test].executor": "Run",
+    "Maven.core [install].executor": "Run",
+    "Maven.freight [clean].executor": "Run",
+    "Maven.gateway [clean].executor": "Run",
+    "Maven.logistics [clean].executor": "Run",
+    "Maven.oomall [clean].executor": "Run",
+    "Maven.oomall [install].executor": "Run",
+    "Maven.payment [clean].executor": "Run",
+    "Maven.product [clean].executor": "Run",
+    "Maven.region [clean].executor": "Run",
+    "Maven.shop [clean].executor": "Run",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "发现新的/更新的数据库配置",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "SHELLCHECK.PATH": "我会在意",
+    "Spring Boot.AftersaleApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/ideaProjects/oomall-/conf/mysql/sql",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "项目",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.importing",
+    "vue.rearranger.settings.migration": "true",
+    "数据库脚本.aftersale.sql.executor": "Run",
+    "数据库脚本.aftersaleorder.sql.executor": "Run",
+    "数据库脚本.clear_aftersale_database.sql.executor": "Run",
+    "数据库脚本.logistics.sql.executor": "Run",
+    "数据库脚本.updatedate.sql.executor": "Run"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mysql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
     ],
-    &quot;RunConfigurationTargetLRU&quot;: [
-      &quot;aaf15287-63d7-426a-b1bc-f424af13125f/schema/\&quot;aftersale\&quot;&quot;,
-      &quot;aaf15287-63d7-426a-b1bc-f424af13125f&quot;
+    "RunConfigurationTargetLRU": [
+      "aaf15287-63d7-426a-b1bc-f424af13125f/schema/\"aftersale\"",
+      "aaf15287-63d7-426a-b1bc-f424af13125f/schema/\"logistics\"",
+      "aaf15287-63d7-426a-b1bc-f424af13125f"
     ]
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\ideaProjects\oomall-\conf\mysql\sql" />
+      <recent name="D:\ideaProjects\oomall-\aftersale\src\main\java\cn\edu\xmu\oomall\aftersale\controller\dto" />
+      <recent name="D:\ideaProjects\oomall-\Aftersale\src\main\java\cn\edu\xmu\oomall\aftersale\service" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="cn.edu.xmu.oomall.aftersale.dao.bo" />
+    </key>
+  </component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
@@ -98,15 +137,26 @@
         <option value="SpringBootApplicationConfigurationType" />
       </set>
     </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="AftersaleApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
-  <component name="RunManager" selected="JUnit.AftersaleControllerTest">
-    <configuration name="aftersale.sql" type="DatabaseScript" editBeforeRun="true" temporary="true" nameIsGenerated="true">
-      <script-file value="$PROJECT_DIR$/conf/mysql/sql/aftersale.sql" />
+  <component name="RunManager" selected="数据库脚本.updatedate.sql">
+    <configuration name="updatedate.sql" type="DatabaseScript" editBeforeRun="true" temporary="true" nameIsGenerated="true">
+      <script-file value="$PROJECT_DIR$/conf/mysql/sql/updatedate.sql" />
       <script-mode>FILE</script-mode>
       <data-source id="aaf15287-63d7-426a-b1bc-f424af13125f" namespace="schema/&quot;aftersale&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="AftersaleControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="AftersaleOrderControllerTest.auditAftersale" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="aftersale" />
       <extension name="coverage">
         <pattern>
@@ -115,8 +165,57 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="cn.edu.xmu.oomall.aftersale.controller" />
-      <option name="MAIN_CLASS_NAME" value="cn.edu.xmu.oomall.aftersale.controller.AftersaleControllerTest" />
-      <option name="TEST_OBJECT" value="class" />
+      <option name="MAIN_CLASS_NAME" value="cn.edu.xmu.oomall.aftersale.controller.AftersaleOrderControllerTest" />
+      <option name="METHOD_NAME" value="auditAftersale" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AftersaleOrderControllerTest.auditAftersale_missingConfirm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="aftersale" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cn.edu.xmu.oomall.aftersale.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="cn.edu.xmu.oomall.aftersale.controller" />
+      <option name="MAIN_CLASS_NAME" value="cn.edu.xmu.oomall.aftersale.controller.AftersaleOrderControllerTest" />
+      <option name="METHOD_NAME" value="auditAftersale_missingConfirm" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AftersaleOrderControllerTest.auditAftersale_noToken" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="aftersale" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cn.edu.xmu.oomall.aftersale.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="cn.edu.xmu.oomall.aftersale.controller" />
+      <option name="MAIN_CLASS_NAME" value="cn.edu.xmu.oomall.aftersale.controller.AftersaleOrderControllerTest" />
+      <option name="METHOD_NAME" value="auditAftersale_noToken" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="AftersaleOrderControllerTest.getAftersales" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="aftersale" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cn.edu.xmu.oomall.aftersale.controller.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="cn.edu.xmu.oomall.aftersale.controller" />
+      <option name="MAIN_CLASS_NAME" value="cn.edu.xmu.oomall.aftersale.controller.AftersaleOrderControllerTest" />
+      <option name="METHOD_NAME" value="getAftersales" />
+      <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -186,8 +285,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.AftersaleControllerTest" />
-        <item itemvalue="数据库脚本.aftersale.sql" />
+        <item itemvalue="数据库脚本.updatedate.sql" />
+        <item itemvalue="JUnit.AftersaleOrderControllerTest.auditAftersale" />
+        <item itemvalue="JUnit.AftersaleOrderControllerTest.auditAftersale_noToken" />
+        <item itemvalue="JUnit.AftersaleOrderControllerTest.auditAftersale_missingConfirm" />
+        <item itemvalue="JUnit.AftersaleOrderControllerTest.getAftersales" />
       </list>
     </recent_temporary>
   </component>
@@ -214,6 +316,7 @@
       <workItem from="1765195736985" duration="5130000" />
       <workItem from="1765789129643" duration="865000" />
       <workItem from="1765790269485" duration="2343000" />
+      <workItem from="1765792639969" duration="29735000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <option name="closed" value="true" />
@@ -223,7 +326,31 @@
       <option name="project" value="LOCAL" />
       <updated>1765790910265</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Changes">
+      <option name="closed" value="true" />
+      <created>1765792932389</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1765792932389</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Changes">
+      <option name="closed" value="true" />
+      <created>1765887709261</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1765887709261</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Changes">
+      <option name="closed" value="true" />
+      <created>1765887728920</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1765887728920</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
