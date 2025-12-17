@@ -35,18 +35,21 @@ public class FixStrategy implements AuditStrategy {
         consignee.setName("Customer_" + bo.getCustomerId());
         consignee.setMobile("13800000000");
         consignee.setAddress("Default Address");
+        consignee.setRegionId(1);
 
         dto.setConsignee(consignee);
 
-        String token = "Bearer internal_token";
+        String token = null;
 
-        // 2. 远程调用
         try {
             serviceOrderClient.createServiceOrder(bo.getShopId(), bo.getId(), token, dto);
+
             log.info("[FixStrategy] 维修服务单创建成功");
         } catch (Exception e) {
             log.error("[FixStrategy] 创建服务单失败, boId={}", bo.getId(), e);
             throw new RuntimeException("远程调用服务模块失败", e);
         }
+
+
     }
 }
