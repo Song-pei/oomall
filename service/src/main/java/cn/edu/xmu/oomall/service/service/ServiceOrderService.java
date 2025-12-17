@@ -28,7 +28,8 @@ public class ServiceOrderService {
             return serviceOrder.create(user);
 
         } catch (BusinessException e) {
-            throw new BusinessException(ReturnNo.INTERNAL_SERVER_ERR, "创建服务单失败");
+            log.error("创建服务单失败，参数: {}", serviceOrder, e);
+            throw new BusinessException(ReturnNo.SERVICE_ORDER_CREATE_FAILED);
         }
     }
 }

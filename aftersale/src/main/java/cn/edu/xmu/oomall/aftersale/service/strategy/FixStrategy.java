@@ -1,5 +1,7 @@
 package cn.edu.xmu.oomall.aftersale.service.strategy;
 
+import cn.edu.xmu.javaee.core.exception.BusinessException;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCreateDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.ServiceOrderClient;
@@ -27,27 +29,25 @@ public class FixStrategy implements AuditStrategy {
 
         // 1. 组装参数
         ServiceOrderCreateDTO dto = new ServiceOrderCreateDTO();
-        dto.setType(0); // 0代表维修服务单
-
+        dto.setType(0);
         ServiceOrderCreateDTO.Consignee consignee = new ServiceOrderCreateDTO.Consignee();
 
         // 使用 bo 里的 customerId 模拟名字
-        consignee.setName("Customer_" + bo.getCustomerId());
-        consignee.setMobile("13800000000");
-        consignee.setAddress("Default Address");
-        consignee.setRegionId(1);
-
+        consignee.setName(bo.getCustomerName());
+        consignee.setMobile(bo.getCustomerMobile());
+        consignee.setAddress(bo.getCustomerAddress());
+        if (bo.getCustomerRegionId() != null) {
+            consignee.setRegionId(bo.getCustomerRegionId().intValue());
+        }
         dto.setConsignee(consignee);
-
         String token = null;
 
         try {
             serviceOrderClient.createServiceOrder(bo.getShopId(), bo.getId(), token, dto);
-
             log.info("[FixStrategy] 维修服务单创建成功");
         } catch (Exception e) {
             log.error("[FixStrategy] 创建服务单失败, boId={}", bo.getId(), e);
-            throw new RuntimeException("远程调用服务模块失败", e);
+            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
 
 

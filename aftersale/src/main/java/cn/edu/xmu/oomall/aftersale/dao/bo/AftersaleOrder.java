@@ -1,23 +1,28 @@
 package cn.edu.xmu.oomall.aftersale.dao.bo;
 
-import ch.qos.logback.classic.Logger;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
-import cn.edu.xmu.javaee.core.clonefactory.CopyTo;
+import cn.edu.xmu.javaee.core.model.OOMallObject; // 记得导入这个！
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.AuditStrategyFactory;
 import cn.edu.xmu.oomall.aftersale.service.strategy.impl.AuditStrategy;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+
 @Slf4j
-//@CopyNotNullTo(Aftersale.class)
 @Data
 @NoArgsConstructor
+@ToString(callSuper = true)      // 让 toString 包含父类字段
+@EqualsAndHashCode(callSuper = true) // 让 equals 包含父类字段
 @CopyFrom(AftersaleOrderPo.class)
-public class AftersaleOrder {
-    private Long id;
+public class AftersaleOrder extends OOMallObject { // 1. 继承基类
+
+    // id, creatorId, gmtCreate 等字段全在父类里，这里统统删掉！
+
     private Long shopId;
     private Long customerId;
     private Long orderId;
@@ -26,27 +31,36 @@ public class AftersaleOrder {
     private String conclusion;
     private String reason;
 
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
+    private String customerName;
+    private String customerMobile;
+    private Long customerRegionId;
+    private String customerAddress;
 
-    private Long creatorId;
-    private String creatorName;
-    private Long modifierId;
-    private String modifierName;
-    private LocalDateTime gmtCreate;
-    private LocalDateTime gmtModified;
     private Byte inArbitrated;
 
+    // --- 删除了 createTime 和 updateTime ---
+
+    // 必须实现父类的抽象方法
+    @Override
+    public void setGmtCreate(LocalDateTime gmtCreate) {
+        this.gmtCreate = gmtCreate;
+    }
+
+    @Override
+    public void setGmtModified(LocalDateTime gmtModified) {
+        this.gmtModified = gmtModified;
+    }
+
     public void audit(String conclusionIn, String reasonIn, boolean confirm) {
-        this.updateTime = LocalDateTime.now();
+        // 2. 修正：更新标准的 gmtModified
+        this.setGmtModified(LocalDateTime.now());
 
         if (confirm) {
             // === 同意 ===
             this.status = 1;
             this.conclusion = "同意";
-            this.reason = null; // 同意时清空理由
+            this.reason = null;
 
-            // 执行策略
             AuditStrategy strategy = AuditStrategyFactory.getStrategy(this.type, this.conclusion);
             if (strategy != null) {
                 strategy.execute(this, this.conclusion);
@@ -55,8 +69,6 @@ public class AftersaleOrder {
             // === 拒绝 ===
             this.status = 2;
             this.conclusion = "不同意";
-
-            // 现在直接存入 reason 字段，不用拼接到 conclusion 了
             this.reason = reasonIn;
         }
     }

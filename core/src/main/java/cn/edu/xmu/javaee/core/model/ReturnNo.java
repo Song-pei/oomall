@@ -12,9 +12,12 @@ public enum ReturnNo {
 
     OK(0,"ReturnNo.OK"),
     CREATED(1, "创建成功", 201),
+    //服务器内部错误
     INTERNAL_SERVER_ERR(2, "ReturnNo.INTERNAL_SERVER_ERR",500),
+    //参数不合法
     FIELD_NOTVALID(3, "ReturnNo.FIELD_NOTVALID",400),
     RESOURCE_ID_NOTEXIST(4, "ReturnNo.RESOURCE_ID_NOTEXIST",404),
+    //状态不允许
     STATENOTALLOW(7,"ReturnNo.STATENOTALLOW"),
     RESOURCE_ID_OUTSCOPE(17, "ReturnNo.RESOURCE_ID_OUTSCOPE",403),
     CREATEOBJ_NOTEXIST(18, "ReturnNo.CREATEOBJ_NOTEXIST"),
@@ -25,6 +28,9 @@ public enum ReturnNo {
     DEL_FILE_FAILED(30, "ReturnNo.DEL_FILE_FAILED"),
     EXISTED_RELATION(31, "ReturnNo.EXISTED_RELATION"),
     INCONSISTENT_DATA(5, "ReturnNo.INCONSISTENT_DATA"),
+    //远程服务调用失败
+    REMOTE_SERVICE_FAIL(33, "远程服务调用失败", 500),
+
 
     /**************************************
      *  支付模块
@@ -97,10 +103,17 @@ public enum ReturnNo {
 
     AFTERSALE_AUDIT_RESULT_EMPTY(706, "审核结果不能为空"),
     AFTERSALE_NOT_LOGIN(707, "未登录或 token 为空"),
+    AGTSERSALE_NOT_EXIST(708, "售后单(id=%d)不存在"),
+    SHOP_NOT_OWN_AFTERSALE(709, "店铺(id=%d)不拥有售后单(id=%d)"),
+    //只能审核已申请状态的订单
+    AFTERSALE_STATUS_NOT_APPLICABLE(710, "只能审核已申请状态的售后单"),
+
 
     /**************************************
      *  服务模块
      ************************************/
+    //创建服务单失败
+    SERVICE_ORDER_CREATE_FAILED(751, "创建服务单失败"),
 
 
     /***************************************************

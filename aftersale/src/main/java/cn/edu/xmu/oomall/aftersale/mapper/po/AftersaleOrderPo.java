@@ -1,12 +1,10 @@
 package cn.edu.xmu.oomall.aftersale.mapper.po;
 
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
-import cn.edu.xmu.javaee.core.clonefactory.CopyTo;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 
 import java.time.LocalDateTime;
 
@@ -28,8 +26,13 @@ public class AftersaleOrderPo {
     private String conclusion;
     private String reason;
 
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
+    private String customerName;
+    private String customerMobile;
+    private Long customerRegionId;
+    private String customerAddress;
+
+    // --- 删除了 createTime 和 updateTime，因为数据库没这两列 ---
+
     private Long creatorId;
     private String creatorName;
     private Long modifierId;
