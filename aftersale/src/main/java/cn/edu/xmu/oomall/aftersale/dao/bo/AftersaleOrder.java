@@ -3,8 +3,8 @@ package cn.edu.xmu.oomall.aftersale.dao.bo;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
 import cn.edu.xmu.javaee.core.model.OOMallObject; // 记得导入这个！
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
-import cn.edu.xmu.oomall.aftersale.service.strategy.AuditStrategyFactory;
-import cn.edu.xmu.oomall.aftersale.service.strategy.impl.AuditStrategy;
+import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategyFactory;
+import cn.edu.xmu.oomall.aftersale.service.strategy.impl.TypeStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -51,7 +51,7 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
         this.gmtModified = gmtModified;
     }
 
-    public void audit(String conclusionIn, String reasonIn, boolean confirm) {
+    public void audit(String conclusionIn, String reasonIn, boolean confirm, TypeStrategyFactory typeStrategyFactory) {
         // 2. 修正：更新标准的 gmtModified
         this.setGmtModified(LocalDateTime.now());
 
@@ -61,9 +61,11 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
             this.conclusion = "同意";
             this.reason = null;
 
-            AuditStrategy strategy = AuditStrategyFactory.getStrategy(this.type, this.conclusion);
+    //        AuditStrategyFactory auditStrategyFactory = new AuditStrategyFactory();
+            TypeStrategy strategy = typeStrategyFactory.getStrategy(this.type);
+//            AuditStrategy strategy = AuditStrategyFactory.getStrategy(this.type, this.conclusion);
             if (strategy != null) {
-                strategy.execute(this, this.conclusion);
+                strategy.audit(this, this.conclusion);
             }
         } else {
             // === 拒绝 ===
