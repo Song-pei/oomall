@@ -7,10 +7,8 @@ import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
-import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +22,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class AftersaleOrderService {
-    @Autowired
-    private final TypeStrategyFactory typeStrategyFactory;
     private final AftersaleOrderDao aftersaleOrderDao;
 
     /**
@@ -63,10 +59,9 @@ public class AftersaleOrderService {
             throw new BusinessException(ReturnNo.AFTERSALE_STATUS_NOT_APPLICABLE);
         }
 
-
         // 4. 执行 BO 业务逻辑
         // 这行代码负责修改 status, conclusion, reason
-        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), typeStrategyFactory);
+        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm));
 
         // 5. 先同步业务数据，再填审计信息
         // 将 BO 改后的状态同步回 PO

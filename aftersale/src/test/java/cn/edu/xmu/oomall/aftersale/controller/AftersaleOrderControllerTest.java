@@ -55,7 +55,7 @@ public class AftersaleOrderControllerTest {
 
     @Test
     public void auditAftersale() throws Exception {
-        String requestBody = "{\"confirm\": true, \"conclusion\": \"同意\", \"reason\": \"质量问题\"}";
+        String requestBody = "{\"confirm\": false, \"conclusion\": \"不同意\", \"reason\": \"质量问题\"}";
 
         mockMvc.perform(put("/shops/1/aftersales/1/confirm")
                         .header("authorization", "Bearer test-token")
