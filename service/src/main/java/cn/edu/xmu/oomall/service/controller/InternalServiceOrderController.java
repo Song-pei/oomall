@@ -71,7 +71,7 @@ public class InternalServiceOrderController {
                 .address(serviceOrderDto.getConsignee().getAddress())
                 .build();
         ServiceOrder newOrder = this.serviceOrderService.createServiceOrder(serviceOrder, user);
-        return new ReturnObject(ReturnNo.CREATED, CloneFactory.copy(new SimpleServiceVo(), newOrder));
+        return new ReturnObject(ReturnNo.OK, CloneFactory.copy(new SimpleServiceVo(), newOrder));
     }
 }
 

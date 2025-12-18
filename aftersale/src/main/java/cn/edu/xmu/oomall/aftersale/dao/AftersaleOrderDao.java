@@ -104,44 +104,6 @@ public class AftersaleOrderDao {
     }
 
     /**
-     * 审核更新方法
-     * 包含：校验、状态更新、审计字段填充(User)
-     */
-    public void audit(Long shopId, Long id, Boolean confirm, String conclusion, String reason, UserToken user) {
-        // 1. 查询
-        AftersaleOrderPo po = this.findById(id);
-        if (po == null) {
-            log.warn("DAO审核失败: 单据不存在 id={}", id);
-            throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
-        // 2. 权限校验 (防止商家A操作商家B的数据)
-        if (user != null && user.getDepartId() != 0L && !po.getShopId().equals(user.getDepartId())) {
-            log.warn("DAO审核失败: 越权操作 userShopId={}, targetShopId={}", user.getDepartId(), po.getShopId());
-            throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE);
-        }
-
-        // 3. 更新业务字段
-        Integer newStatus = Boolean.TRUE.equals(confirm) ? 3 : 6;// 3审核通过已生成服务单，6审核不通过，取消
-        po.setStatus(newStatus);
-        po.setConclusion(conclusion);
-        po.setReason(reason);
-
-        // 4. 修改人
-        if (user != null) {
-            po.setModifierId(user.getId());
-            po.setModifierName(user.getName());
-        } else {
-            po.setModifierId(0L);
-            po.setModifierName("System");
-        }
-        po.setGmtModified(LocalDateTime.now());
-
-        aftersaleOrderPoMapper.save(po);
-        log.info("DAO审核完成: id={}, status={}, modifier={}", id, newStatus, po.getModifierName());
-    }
-
-    /**
      * 更新方法
      */
     public void update(AftersaleOrderPo po) {
