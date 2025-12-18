@@ -1,8 +1,8 @@
 -- 1. 如果表已存在，先删除
-DROP TABLE IF EXISTS after_sales_order;
+DROP TABLE IF EXISTS aftersale_aftersaleorder;
 
 -- 2. 建立新表
-CREATE TABLE after_sales_order(
+CREATE TABLE aftersale_aftersaleorder(
                                   id BIGINT PRIMARY KEY COMMENT '主键ID',
                                   shop_id BIGINT NOT NULL COMMENT '店铺ID',
                                   customer_id BIGINT NOT NULL COMMENT '客户ID(账号ID)',

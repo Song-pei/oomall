@@ -1,8 +1,8 @@
 -- 1. 先删除 id=1 的数据（防止主键冲突）
-DELETE FROM after_sales_order WHERE id = 1;
+DELETE FROM aftersale_aftersaleorder WHERE id = 1;
 
 -- 2. 插入一条初始状态的数据
-INSERT INTO after_sales_order (
+INSERT INTO aftersale_aftersaleorder (
     id,
     shop_id,
     customer_id,
