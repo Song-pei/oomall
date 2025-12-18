@@ -22,16 +22,19 @@ public class FixStrategy implements TypeStrategy {
         log.info("[FixStrategy] 开始执行维修单策略，boId={}", bo.getId());
 
         // 1. 组装参数
-        ServiceOrderCreateDTO dto = new ServiceOrderCreateDTO();
-        dto.setType(0);
-        ServiceOrderCreateDTO.Consignee consignee = new ServiceOrderCreateDTO.Consignee();
-        consignee.setName(bo.getCustomerName());
-        consignee.setMobile(bo.getCustomerMobile());
-        consignee.setAddress(bo.getCustomerAddress());
-        if (bo.getCustomerRegionId() != null) {
-            consignee.setRegionId(bo.getCustomerRegionId().intValue());
-        }
-        dto.setConsignee(consignee);
+        ServiceOrderCreateDTO dto = ServiceOrderCreateDTO.builder()
+                .type(0)
+                .consignee(ServiceOrderCreateDTO.Consignee.builder()
+                        .name(bo.getCustomerName())
+                        .mobile(bo.getCustomerMobile())
+                        .address(bo.getCustomerAddress())
+                        .regionId(bo.getCustomerRegionId() != null ? bo.getCustomerRegionId().intValue() : null)
+                        .build())
+                .build();
+
+
+
+        // 2. 调用服务单微服务创建服务单
         String token = null;
 
         try {

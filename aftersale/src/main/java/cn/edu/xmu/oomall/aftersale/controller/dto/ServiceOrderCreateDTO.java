@@ -1,7 +1,9 @@
 package cn.edu.xmu.oomall.aftersale.controller.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 public class ServiceOrderCreateDTO {
 
@@ -11,6 +13,7 @@ public class ServiceOrderCreateDTO {
 
     private Consignee consignee;   // 可选收件人信息
 
+    @Builder
     @Data
     public static class Consignee {
 

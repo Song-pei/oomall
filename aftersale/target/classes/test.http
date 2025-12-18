@@ -1,0 +1,110 @@
+### 变量定义 (你可以根据实际启动端口修改)
+@host = http://localhost:8080
+
+### 1. 获取售后列表 (对应 getAftersales 测试)
+# 预期正确码: 200 (ReturnNo.OK   data——售后单列表)
+GET {{host}}/shops/1/aftersales
+Content-Type: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Errno is 0", function() {
+        client.assert(response.body.errno === 0, "Errno should be 0");
+    });
+
+    client.test("Data is array", function() {
+        client.assert(Array.isArray(response.body.data), "Data should be an array");
+    });
+%}
+
+### 2. 审核售后单 - 成功 - 不同意(对应 auditAftersale 测试)
+# 预期正确码: 200 (ReturnNo.OK)
+PUT {{host}}/shops/1/aftersales/1/confirm
+Content-Type: application/json
+
+{
+  "confirm": false,
+  "conclusion": "不同意",
+  "reason": "质量问题"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Errno is 0", function() {
+        client.assert(response.body.errno === 0, "Errno should be 0");
+    });
+%}
+
+
+
+### 3. 审核售后单 - 成功 - 同意
+# 预期正确码: 200 (ReturnNo.OK)
+PUT {{host}}/shops/1/aftersales/1/confirm
+Content-Type: application/json
+
+{
+  "confirm": true,
+  "conclusion": "同意"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Errno is 0", function() {
+        client.assert(response.body.errno === 0, "Errno should be 0");
+    });
+%}
+
+
+
+
+
+### 4. 审核售后单 - 缺少confirm字段 (对应 auditAftersale_missingConfirm 测试)
+# 预期错误码: 706 (审核结果不能为空)
+PUT {{host}}/shops/1/aftersales/1/confirm
+Authorization: Bearer test-token
+Content-Type: application/json
+
+{
+  "conclusion": "同意退款",
+  "reason": "质量问题"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Errno is 706 (Missing Confirm)", function() {
+        client.assert(response.body.errno === 706, "Errno should be 706");
+    });
+%}
+
+### 5. 审核售后单 - 缺少Token (对应 auditAftersale_noToken 测试)
+# 预期错误码: 707 (AFTERSALE_NOT_LOGIN)
+PUT {{host}}/shops/1/aftersales/1/confirm
+Content-Type: application/json
+
+{
+  "confirm": true,
+  "conclusion": "同意退款",
+  "reason": "质量问题"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Errno is 707 (No Token)", function() {
+        client.assert(response.body.errno === 707, "Errno should be 707");
+    });
+%}
