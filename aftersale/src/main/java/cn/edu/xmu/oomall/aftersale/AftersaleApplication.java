@@ -5,7 +5,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients(basePackages = "cn.edu.xmu.oomall.aftersale.service.feign")
-@SpringBootApplication
+
+@SpringBootApplication(
+        scanBasePackages = {"cn.edu.xmu.javaee.core",
+        "cn.edu.xmu.oomall.aftersale"})
+
 public class AftersaleApplication {
     public static void main(String[] args) {
         SpringApplication.run(AftersaleApplication.class, args);

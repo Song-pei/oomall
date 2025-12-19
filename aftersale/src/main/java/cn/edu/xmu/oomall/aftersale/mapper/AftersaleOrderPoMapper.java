@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AftersaleOrderPoMapper extends JpaRepository<AftersaleOrderPo, Long>, JpaSpecificationExecutor<AftersaleOrderPo> {
-    AftersaleOrderPo findById(ID Id);
+    //AftersaleOrderPo findById(ID Id);
 }

@@ -7,6 +7,7 @@ CREATE TABLE aftersale_aftersaleorder(
                                   shop_id BIGINT NOT NULL COMMENT '店铺ID',
                                   customer_id BIGINT NOT NULL COMMENT '客户ID(账号ID)',
                                   order_id BIGINT NOT NULL COMMENT '关联的原订单ID',
+                                  service_order_id BIGINT COMMENT '关联的服务单ID',
 
     -- 增加 customer信息
                                   customer_name VARCHAR(128) COMMENT '联系人姓名',

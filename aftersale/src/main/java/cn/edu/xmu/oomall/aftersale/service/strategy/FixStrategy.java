@@ -51,7 +51,7 @@ public class FixStrategy implements TypeStrategy {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 Long serviceOrderId = ret.getData().getId();
                 log.info("[FixStrategy] 维修服务单创建成功, 服务单号: {}", serviceOrderId);
-
+                bo.setServiceOrderId(serviceOrderId);
             } else {
                 log.error("[FixStrategy] 服务模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());

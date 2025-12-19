@@ -21,6 +21,7 @@ public class AftersaleOrderPo {
     private Long shopId;
     private Long customerId;
     private Long orderId;
+    private Long serviceOrderId;
     private Integer type;
     private Integer status;
     private String conclusion;

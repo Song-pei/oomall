@@ -26,6 +26,8 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
     private Long shopId;
     private Long customerId;
     private Long orderId;
+    private Long serviceOrderId;
+
     private Integer type;
     private Integer status;
     private String conclusion;
@@ -67,7 +69,8 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
             if (strategy != null) {
                 strategy.audit(this, this.conclusion);
             }
-        } else {
+        }
+        else {
             // === 拒绝 ===
             this.status = 2;
             this.conclusion = "不同意";

@@ -31,9 +31,9 @@
     </properties>
 
     <modules>
-<!--        <module>core</module>-->
+        <module>core</module>
 <!--        <module>freight</module>-->
-        <module>product</module>
+<!--        <module>product</module>-->
 <!--        <module>prodorder</module>-->
 <!--        <module>gateway</module>-->
 <!--        <module>region</module>-->
