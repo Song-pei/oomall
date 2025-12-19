@@ -51,6 +51,7 @@ public class FixStrategy implements TypeStrategy {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 Long serviceOrderId = ret.getData().getId();
                 log.info("[FixStrategy] 维修服务单创建成功, 服务单号: {}", serviceOrderId);
+                // 5. 将服务单号设置回售后单 BO
                 bo.setServiceOrderId(serviceOrderId);
             } else {
                 log.error("[FixStrategy] 服务模块返回错误: {}", ret.getErrmsg());

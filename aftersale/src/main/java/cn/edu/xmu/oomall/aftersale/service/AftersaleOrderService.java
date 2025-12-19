@@ -37,6 +37,9 @@ public class AftersaleOrderService {
 
 
 
+    /**
+     * 审核售后单
+     */
     public void audit(Long shopId, Long id,
                       Boolean confirm,
                       String conclusion,
@@ -70,8 +73,7 @@ public class AftersaleOrderService {
         // 这行代码负责修改 status, conclusion, reason
         bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), typeStrategyFactory);
 
-        // 5. 先同步业务数据，再填审计信息
-        // 将 BO 改后的状态同步回 PO
+        // 5. 将 BO 改后的状态同步回 PO
         po = CloneFactory.copy(po, bo);
 
         // 6. 填充审计字段 (修改人)
@@ -83,7 +85,6 @@ public class AftersaleOrderService {
             po.setModifierId(0L);
             po.setModifierName("System");
         }
-
         // 显式更新时间
         po.setGmtModified(java.time.LocalDateTime.now());
 

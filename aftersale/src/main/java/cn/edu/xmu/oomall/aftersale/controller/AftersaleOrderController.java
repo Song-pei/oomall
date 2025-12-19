@@ -27,6 +27,9 @@ import static cn.edu.xmu.javaee.core.model.ReturnNo.*;
 @Slf4j
 public class AftersaleOrderController {
     private final AftersaleOrderService aftersaleOrderService;
+
+
+
     /**
      * 查询售后单
      * @param shopId
@@ -76,7 +79,7 @@ public class AftersaleOrderController {
      * @param shopId
      * @param id
      * @param dto
-     * @param user  <-- 1. 修改这里：直接注入 UserToken
+     * @param user
      * @return
      */
     @PutMapping("aftersales/{id}/confirm")
@@ -99,7 +102,6 @@ public class AftersaleOrderController {
         }
 
 
-
         if (dto.getConfirm() == null) {
             log.warn("审核失败：参数 confirm 为空, id={}", id);
             return new ReturnObject(AFTERSALE_AUDIT_RESULT_EMPTY);
@@ -112,7 +114,7 @@ public class AftersaleOrderController {
                     dto.getConfirm(),
                     dto.getConclusion(),
                     dto.getReason(),
-                    user // <--- 传入 user
+                    user
             );
             log.info("售后单审核成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
@@ -123,7 +125,6 @@ public class AftersaleOrderController {
             log.warn("审核失败(状态不允许): id={}, error={}", id, e.getMessage());
             return new ReturnObject(ReturnNo.STATENOTALLOW);
         } catch (Exception e) {
-            // 建议这里用 log 打印一下堆栈，方便调试
             log.error("审核失败", e);
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }

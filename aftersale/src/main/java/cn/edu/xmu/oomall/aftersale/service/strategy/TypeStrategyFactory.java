@@ -12,8 +12,6 @@ public class TypeStrategyFactory {
     private Map<String, TypeStrategy> strategyMap;
 
     public TypeStrategy getStrategy(Integer type) {
-        // 注意：你的入参是 Integer，但 Map 的 Key 是 String
-        // 所以这里要做一次 toString() 转换
         if (type == null) {
             return null;
         }

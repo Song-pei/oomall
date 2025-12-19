@@ -11,12 +11,8 @@ public interface ServiceOrderClient {
 
     @PostMapping("/internal/shops/{shopId}/aftersales/{id}/serviceorders")
     InternalReturnObject<ServiceOrderResponseDTO> createServiceOrder(
-            // 对应 URL 里的 {shopId}
             @PathVariable("shopId") Long shopId,
-
-            // 对应 URL 里的 {id}
             @PathVariable("id") Long afterSalesId,
-
             @RequestHeader(value = "authorization", required = false) String token,
             @RequestBody ServiceOrderCreateDTO payload
     );

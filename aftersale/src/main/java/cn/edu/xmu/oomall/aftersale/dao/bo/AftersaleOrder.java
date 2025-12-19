@@ -16,12 +16,11 @@ import java.time.LocalDateTime;
 @Slf4j
 @Data
 @NoArgsConstructor
-@ToString(callSuper = true)      // 让 toString 包含父类字段
-@EqualsAndHashCode(callSuper = true) // 让 equals 包含父类字段
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @CopyFrom(AftersaleOrderPo.class)
 public class AftersaleOrder extends OOMallObject { // 1. 继承基类
 
-    // id, creatorId, gmtCreate 等字段全在父类里，这里统统删掉！
 
     private Long shopId;
     private Long customerId;
@@ -40,9 +39,7 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
 
     private Byte inArbitrated;
 
-    // --- 删除了 createTime 和 updateTime ---
 
-    // 必须实现父类的抽象方法
     @Override
     public void setGmtCreate(LocalDateTime gmtCreate) {
         this.gmtCreate = gmtCreate;
@@ -53,8 +50,11 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
         this.gmtModified = gmtModified;
     }
 
+
+
+
+
     public void audit(String conclusionIn, String reasonIn, boolean confirm, TypeStrategyFactory typeStrategyFactory) {
-        // 2. 修正：更新标准的 gmtModified
         this.setGmtModified(LocalDateTime.now());
 
         if (confirm) {
@@ -63,9 +63,7 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
             this.conclusion = "同意";
             this.reason = null;
 
-    //        AuditStrategyFactory auditStrategyFactory = new AuditStrategyFactory();
             TypeStrategy strategy = typeStrategyFactory.getStrategy(this.type);
-//            AuditStrategy strategy = AuditStrategyFactory.getStrategy(this.type, this.conclusion);
             if (strategy != null) {
                 strategy.audit(this, this.conclusion);
             }
