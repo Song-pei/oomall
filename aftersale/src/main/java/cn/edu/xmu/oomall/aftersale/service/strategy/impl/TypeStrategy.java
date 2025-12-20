@@ -7,6 +7,9 @@ public interface TypeStrategy {
     void audit(AftersaleOrder bo, String conclusion);
     // 验收方法
     void accept(AftersaleOrder bo);
-
+    // 完成方法
+    void complete(AftersaleOrder bo);
+    // 取消方法
+    void cancel(AftersaleOrder bo);
 
 }

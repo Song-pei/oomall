@@ -73,4 +73,12 @@ public class FixStrategy implements TypeStrategy {
     public void accept(AftersaleOrder bo) {
         // 维修单不需要验收
     }
+    @Override
+    public void complete(AftersaleOrder bo) {
+        // 维修单完成逻辑
+    }
+    @Override
+    public void cancel(AftersaleOrder bo) {
+        // 维修单取消逻辑
+    }
 }
