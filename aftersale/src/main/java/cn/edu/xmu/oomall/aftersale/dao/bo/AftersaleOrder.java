@@ -3,8 +3,8 @@ package cn.edu.xmu.oomall.aftersale.dao.bo;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
 import cn.edu.xmu.javaee.core.model.OOMallObject; // 记得导入这个！
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategy;
 import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategyFactory;
-import cn.edu.xmu.oomall.aftersale.service.strategy.impl.TypeStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -51,28 +51,25 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
     }
 
 
-
-
-
     public void audit(String conclusionIn, String reasonIn, boolean confirm, TypeStrategyFactory typeStrategyFactory) {
         this.setGmtModified(LocalDateTime.now());
 
         if (confirm) {
             // === 同意 ===
-            this.status = 1;
+
             this.conclusion = "同意";
             this.reason = null;
-
             TypeStrategy strategy = typeStrategyFactory.getStrategy(this.type);
             if (strategy != null) {
-                strategy.audit(this, this.conclusion);
+                strategy.audit(this, conclusionIn);
             }
+            this.status = 1;//状态一定要在策略执行后修改
         }
         else {
             // === 拒绝 ===
-            this.status = 2;
             this.conclusion = "不同意";
             this.reason = reasonIn;
+            this.status = 7;
         }
     }
 }
