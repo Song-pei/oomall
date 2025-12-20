@@ -1,10 +1,9 @@
 package cn.edu.xmu.oomall.aftersale.dao.bo;
 
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
-import cn.edu.xmu.javaee.core.model.OOMallObject; // 记得导入这个！
+import cn.edu.xmu.javaee.core.model.OOMallObject;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
-import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategy;
-import cn.edu.xmu.oomall.aftersale.service.strategy.TypeStrategyFactory;
+import cn.edu.xmu.oomall.aftersale.service.strategy.impl.Strategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @CopyFrom(AftersaleOrderPo.class)
-public class AftersaleOrder extends OOMallObject { // 1. 继承基类
+public class AftersaleOrder extends OOMallObject {
 
 
     private Long shopId;
@@ -51,25 +50,44 @@ public class AftersaleOrder extends OOMallObject { // 1. 继承基类
     }
 
 
-    public void audit(String conclusionIn, String reasonIn, boolean confirm, TypeStrategyFactory typeStrategyFactory) {
+    /**
+     * 1. 审核服务单
+     */
+    public void audit(String conclusionIn, String reasonIn, boolean confirm, Strategy strategy) {
         this.setGmtModified(LocalDateTime.now());
 
         if (confirm) {
-            // === 同意 ===
-
+            // 同意
             this.conclusion = "同意";
             this.reason = null;
-            TypeStrategy strategy = typeStrategyFactory.getStrategy(this.type);
+
+            // 调用 Strategy 里的 audit 方法
             if (strategy != null) {
                 strategy.audit(this, conclusionIn);
             }
-            this.status = 1;//状态一定要在策略执行后修改
-        }
-        else {
-            // === 拒绝 ===
+            this.status = 1;
+        } else {
+            // 拒绝
+            this.status = 7;
             this.conclusion = "不同意";
             this.reason = reasonIn;
-            this.status = 7;
         }
+    }
+
+
+    /**
+     * 2. 取消服务单
+     */
+    public void cancel(Strategy strategy) {
+        this.setGmtModified(LocalDateTime.now());
+
+        // 1. 调用 Strategy 里的 cancel 方法 (执行外部操作，如释放库存)
+        // 此时状态还是旧状态 (比如 0-待审核)
+        if (strategy != null) {
+            strategy.cancel(this);
+        }
+
+        // 2. 修改自身状态为 已取消 (假设是 8)
+        this.status = 8;
     }
 }
