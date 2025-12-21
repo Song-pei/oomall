@@ -11,6 +11,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
+// 【新增】引入 UserToken
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
@@ -48,120 +50,62 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Byte inArbitrated;
 
 
-    /**
-     * 待审核
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer UNAUDIT = 0;
-    /**
-     * 待验收
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer UNCHECK = 1;
-    /**
-     * 待换货
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer UNCHANGE = 2;
-    /**
-     * 已生成服务单
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer GENERATE_SERVICEORDER = 3;
-    /**
-     * 待退款
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer UNREFUND = 4;
-    /**
-     * 取消
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer CANCEL = 5;
-    /**
-     * 未接收
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer NOTACCEPT = 6;
-    /**
-     * 已完成
-     */
-    @JsonIgnore
-    @ToString.Exclude
-    public static final Integer FINISH = 7;
+    /** 待审核 */
+    @JsonIgnore @ToString.Exclude public static final Integer UNAUDIT = 0;
+    /** 待验收 */
+    @JsonIgnore @ToString.Exclude public static final Integer UNCHECK = 1;
+    /** 待换货 */
+    @JsonIgnore @ToString.Exclude public static final Integer UNCHANGE = 2;
+    /** 已生成服务单 */
+    @JsonIgnore @ToString.Exclude public static final Integer GENERATE_SERVICEORDER = 3;
+    /** 待退款 */
+    @JsonIgnore @ToString.Exclude public static final Integer UNREFUND = 4;
+    /** 取消 */
+    @JsonIgnore @ToString.Exclude public static final Integer CANCEL = 5;
+    /** 未接收 */
+    @JsonIgnore @ToString.Exclude public static final Integer NOTACCEPT = 6;
+    /** 已完成 */
+    @JsonIgnore @ToString.Exclude public static final Integer FINISH = 7;
 
-    /**
-     * 状态和名称的对应
-     */
+    /** 状态和名称的对应 */
     @JsonIgnore
     @ToString.Exclude
-    public static final Map<Integer, String> STATUSNAMES = new HashMap() {
-        {
-            put(UNAUDIT, "待审核");
-            put(UNCHECK, "待验收");
-            put(UNCHANGE, "待换货");
-            put(GENERATE_SERVICEORDER, "已生成服务单");
-            put(UNREFUND, "待退款");
-            put(CANCEL, "取消");
-            put(NOTACCEPT, "未接受");
-            put(FINISH, "已完成");
-        }
-    };
-    /**
-     * 允许的状态迁移
-     */
+    public static final Map<Integer, String> STATUSNAMES = new HashMap() {{
+        put(UNAUDIT, "待审核");
+        put(UNCHECK, "待验收");
+        put(UNCHANGE, "待换货");
+        put(GENERATE_SERVICEORDER, "已生成服务单");
+        put(UNREFUND, "待退款");
+        put(CANCEL, "取消");
+        put(NOTACCEPT, "未接受");
+        put(FINISH, "已完成");
+    }};
+
+    /** 允许的状态迁移 */
     @JsonIgnore
     @ToString.Exclude
-    private static final Map<Integer, Set<Integer>> toStatus = new HashMap<>() {
-        {
-            put(UNAUDIT, new HashSet<>() {
-                {
-                    add(UNCHECK);
-                    add(GENERATE_SERVICEORDER);
-                    add(CANCEL);
-                    add(NOTACCEPT);
-                }
-            });
-            put(UNCHECK, new HashSet<>() {
-                {
-                    add(UNCHANGE);
-                    add(UNREFUND);
-                    add(CANCEL);
-                }
-            });
-            put(UNCHANGE, new HashSet<>() {
-                {
-                    add(FINISH);
-                }
-            });
-            put(GENERATE_SERVICEORDER, new HashSet<>() {
-                {
-                    add(FINISH);
-                    add(CANCEL);
-                }
-            });
-            put(UNREFUND, new HashSet<>() {
-                {
-                    add(FINISH);
+    private static final Map<Integer, Set<Integer>> toStatus = new HashMap<>() {{
+        put(UNAUDIT, new HashSet<>() {{
+            add(UNCHECK);
+            add(GENERATE_SERVICEORDER);
+            add(CANCEL);
+            add(NOTACCEPT);
+        }});
+        put(UNCHECK, new HashSet<>() {{
+            add(UNCHANGE);
+            add(UNREFUND);
+            add(CANCEL);
+        }});
+        put(UNCHANGE, new HashSet<>() {{ add(FINISH); }});
+        put(GENERATE_SERVICEORDER, new HashSet<>() {{
+            add(FINISH);
+            add(CANCEL);
+        }});
+        put(UNREFUND, new HashSet<>() {{ add(FINISH); }});
+    }};
 
-                }
-            });
-
-        }
-    };
-    /**
-     * 是否允许状态迁移
-     */
     public boolean allowStatus(Integer status) {
         boolean ret = false;
-
         if (null != status && null != this.status) {
             Set<Integer> allowStatusSet = toStatus.get(this.status);
             if (null != allowStatusSet) {
@@ -170,9 +114,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         }
         return ret;
     }
-    /**
-     * 获得当前状态名称
-     */
+
     @JsonIgnore
     public String getStatusName() {
         return STATUSNAMES.get(this.status);
@@ -188,14 +130,30 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         this.gmtModified = gmtModified;
     }
 
+    // =========================================================
+    //                    核心业务逻辑
+    // =========================================================
+
+    /**
+     * 填充审计信息（修改人、修改时间）
+     * @param user 操作用户
+     */
+    public void setModifier(UserToken user) {
+        if (user != null) {
+            this.setModifierId(user.getId());
+            this.setModifierName(user.getName());
+        } else {
+            this.setModifierId(0L);
+            this.setModifierName("System");
+        }
+        this.setGmtModified(LocalDateTime.now());
+    }
 
     /**
      * 1. 审核服务单
      * @param router 传入策略路由工具
      */
     public void audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router) {
-        this.setGmtModified(LocalDateTime.now());
-
         // 1. 基础状态校验
         if (!UNAUDIT.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
@@ -206,8 +164,8 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             this.conclusion = "同意";
             this.reason = null;
 
-            // 2. 使用 Router 获取具体的 Action
-            AuditAction action = router.routeAudit(this.type, this.status);
+            // 2. 使用泛型 route 方法获取 AuditAction
+            AuditAction action = router.route(this.type, this.status, "AUDIT", AuditAction.class);
 
             if (action == null) {
                 log.error("未找到审核策略: type={}, status={}", this.type, this.status);
@@ -244,17 +202,15 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
      * @param router 传入策略路由工具
      */
     public void cancel(StrategyRouter router) {
-        this.setGmtModified(LocalDateTime.now());
-
-        // 1. 尝试获取特殊的取消策略 (如拦截物流、取消工单)
-        CancelAction action = router.routeCancel(this.type, this.status);
+        // 1. 获取取消策略
+        CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
 
         Integer nextStatus = null;
         if (action != null) {
-            // 执行特殊策略
+            // 执行策略
             nextStatus = action.execute(this);
         } else {
-            // 如果没有特殊策略，默认流转到 CANCEL 状态
+            // 如果没有策略，默认流转到 CANCEL 状态
             nextStatus = CANCEL;
         }
 
