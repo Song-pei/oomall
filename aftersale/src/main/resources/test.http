@@ -1,5 +1,5 @@
 ### 变量定义 (你可以根据实际启动端口修改)
-@host = http://localhost:8080
+@host = http://localhost:8081
 
 ### 1. 获取售后列表 (对应 getAftersales 测试)
 # 预期正确码: 200 (ReturnNo.OK   data——售后单列表)

@@ -8,7 +8,6 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.ServiceOrderClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
-import cn.edu.xmu.oomall.aftersale.service.strategy.enums.AfterSalesStatus;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,7 @@ public class FixAuditAction implements AuditAction {
     public boolean supports(Integer type, Integer status) {
         log.info("正在匹配策略 FixAuditAction: 期望(type=2, status=0), 实际传入(type={}, status={})", type, status);
         // 核心筛选：必须是 维修(2) 且 待审核(0)
-        return type == 2 && status == 0;
+        return type == 2 && status.equals( AftersaleOrder.UNAUDIT);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class FixAuditAction implements AuditAction {
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
         // 4. 返回新的状态：已生成服务单(3)
-        return AfterSalesStatus.SERVICE_ORDER_CREATED.getCode();
+        return AftersaleOrder.GENERATE_SERVICEORDER;
     }
 
 }

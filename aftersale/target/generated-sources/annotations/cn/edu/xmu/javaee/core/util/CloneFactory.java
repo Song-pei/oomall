@@ -13,26 +13,26 @@ public final class CloneFactory {
    * @return the copied target object
    */
   public static AftersaleOrder copy(AftersaleOrder target, AftersaleOrderPo source) {
-    target.setShopId(source.getShopId());
-    target.setCustomerRegionId(source.getCustomerRegionId());
-    target.setModifierName(source.getModifierName());
-    target.setCreatorId(source.getCreatorId());
-    target.setCreatorName(source.getCreatorName());
-    target.setConclusion(source.getConclusion());
-    target.setOrderId(source.getOrderId());
-    target.setGmtModified(source.getGmtModified());
     target.setServiceOrderId(source.getServiceOrderId());
-    target.setReason(source.getReason());
+    target.setGmtCreate(source.getGmtCreate());
+    target.setCreatorId(source.getCreatorId());
+    target.setCustomerId(source.getCustomerId());
+    target.setType(source.getType());
+    target.setModifierName(source.getModifierName());
+    target.setConclusion(source.getConclusion());
+    target.setModifierId(source.getModifierId());
+    target.setStatus(source.getStatus());
     target.setInArbitrated(source.getInArbitrated());
+    target.setCreatorName(source.getCreatorName());
+    target.setOrderId(source.getOrderId());
+    target.setCustomerMobile(source.getCustomerMobile());
+    target.setGmtModified(source.getGmtModified());
+    target.setCustomerRegionId(source.getCustomerRegionId());
     target.setCustomerName(source.getCustomerName());
     target.setId(source.getId());
-    target.setCustomerId(source.getCustomerId());
+    target.setReason(source.getReason());
     target.setCustomerAddress(source.getCustomerAddress());
-    target.setGmtCreate(source.getGmtCreate());
-    target.setStatus(source.getStatus());
-    target.setType(source.getType());
-    target.setCustomerMobile(source.getCustomerMobile());
-    target.setModifierId(source.getModifierId());
+    target.setShopId(source.getShopId());
     return target;
   }
 
@@ -44,26 +44,26 @@ public final class CloneFactory {
    * @return the copied target object
    */
   public static AftersaleOrderPo copy(AftersaleOrderPo target, AftersaleOrder source) {
-    target.setGmtCreate(source.getGmtCreate());
-    target.setCustomerAddress(source.getCustomerAddress());
-    target.setCreatorName(source.getCreatorName());
-    target.setCustomerName(source.getCustomerName());
-    target.setId(source.getId());
-    target.setModifierId(source.getModifierId());
-    target.setStatus(source.getStatus());
-    target.setInArbitrated(source.getInArbitrated());
-    target.setConclusion(source.getConclusion());
-    target.setServiceOrderId(source.getServiceOrderId());
-    target.setShopId(source.getShopId());
-    target.setReason(source.getReason());
-    target.setType(source.getType());
-    target.setOrderId(source.getOrderId());
-    target.setCustomerId(source.getCustomerId());
-    target.setCreatorId(source.getCreatorId());
-    target.setCustomerMobile(source.getCustomerMobile());
-    target.setCustomerRegionId(source.getCustomerRegionId());
-    target.setGmtModified(source.getGmtModified());
     target.setModifierName(source.getModifierName());
+    target.setOrderId(source.getOrderId());
+    target.setCustomerName(source.getCustomerName());
+    target.setCustomerMobile(source.getCustomerMobile());
+    target.setInArbitrated(source.getInArbitrated());
+    target.setCustomerId(source.getCustomerId());
+    target.setConclusion(source.getConclusion());
+    target.setStatus(source.getStatus());
+    target.setCustomerAddress(source.getCustomerAddress());
+    target.setGmtModified(source.getGmtModified());
+    target.setServiceOrderId(source.getServiceOrderId());
+    target.setType(source.getType());
+    target.setReason(source.getReason());
+    target.setCreatorId(source.getCreatorId());
+    target.setId(source.getId());
+    target.setShopId(source.getShopId());
+    target.setCreatorName(source.getCreatorName());
+    target.setModifierId(source.getModifierId());
+    target.setCustomerRegionId(source.getCustomerRegionId());
+    target.setGmtCreate(source.getGmtCreate());
     return target;
   }
 
@@ -75,26 +75,26 @@ public final class CloneFactory {
    * @return the copied target object
    */
   public static AftersaleOrderVo copy(AftersaleOrderVo target, AftersaleOrder source) {
-    target.setStatus(source.getStatus());
-    target.setCustomerName(source.getCustomerName());
-    target.setCustomerMobile(source.getCustomerMobile());
-    target.setCustomerAddress(source.getCustomerAddress());
-    target.setGmtCreate(source.getGmtCreate());
-    target.setCustomerRegionId(source.getCustomerRegionId());
-    target.setInArbitrated(source.getInArbitrated());
-    target.setCreatorName(source.getCreatorName());
     target.setShopId(source.getShopId());
-    target.setOrderId(source.getOrderId());
-    target.setCustomerId(source.getCustomerId());
-    target.setType(source.getType());
-    target.setModifierId(source.getModifierId());
-    target.setId(source.getId());
-    target.setReason(source.getReason());
-    target.setServiceOrderId(source.getServiceOrderId());
+    target.setCreatorId(source.getCreatorId());
+    target.setInArbitrated(source.getInArbitrated());
+    target.setCustomerRegionId(source.getCustomerRegionId());
     target.setGmtModified(source.getGmtModified());
+    target.setReason(source.getReason());
+    target.setCreatorName(source.getCreatorName());
+    target.setStatus(source.getStatus());
+    target.setCustomerAddress(source.getCustomerAddress());
+    target.setServiceOrderId(source.getServiceOrderId());
+    target.setOrderId(source.getOrderId());
+    target.setGmtCreate(source.getGmtCreate());
+    target.setId(source.getId());
+    target.setModifierId(source.getModifierId());
+    target.setCustomerId(source.getCustomerId());
+    target.setCustomerMobile(source.getCustomerMobile());
+    target.setCustomerName(source.getCustomerName());
     target.setConclusion(source.getConclusion());
     target.setModifierName(source.getModifierName());
-    target.setCreatorId(source.getCreatorId());
+    target.setType(source.getType());
     return target;
   }
 }

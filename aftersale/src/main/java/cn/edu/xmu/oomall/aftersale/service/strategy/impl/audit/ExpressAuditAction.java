@@ -2,7 +2,6 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.audit;
 
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
-import cn.edu.xmu.oomall.aftersale.service.strategy.enums.AfterSalesStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,7 @@ public class ExpressAuditAction implements AuditAction {
         // 核心筛选逻辑：
         // 1. 状态必须是 待审核(0)
         // 2. 类型必须是 退货(0) 或 换货(1)
-        return status == 0 && (type == 0 || type == 1);
+        return status.equals(AftersaleOrder.UNAUDIT) && (type == 0 || type == 1);
     }
 
     @Override
@@ -29,6 +28,6 @@ public class ExpressAuditAction implements AuditAction {
         // TODO: 在这里补充具体的业务逻辑
 
         // 审核通过后，状态变更为 待验收(1)
-        return AfterSalesStatus.WAIT_FOR_INSPECTION.getCode();
+        return AftersaleOrder.UNCHECK;
     }
 }

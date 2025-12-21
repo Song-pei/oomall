@@ -28,9 +28,9 @@ spring:
     #    url: jdbc:mysql://mysql:3306Asia/Shanghai
     #database username and password
     username: "root"
-    password: "123456"
+    password: "lgz123456"
 server:
-  port: 8080
+  port: 8081
 
 service-module:
   url: http://localhost:8085
