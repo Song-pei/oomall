@@ -8,6 +8,7 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.ServiceOrderClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.enums.AfterSalesStatus;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ public class FixAuditAction implements AuditAction {
     }
 
     @Override
-    public void execute(AftersaleOrder bo, String conclusion) {
+    public Integer execute(AftersaleOrder bo, String conclusion) {
         log.info("[FixAuditAction] 开始执行维修单审核逻辑，boId={}, conclusion={}", bo.getId(), conclusion);
 
         // 1. 组装参数
@@ -72,5 +73,8 @@ public class FixAuditAction implements AuditAction {
             log.error("[FixAuditAction] 远程调用异常, boId={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
+        // 4. 返回新的状态：已生成服务单(3)
+        return AfterSalesStatus.SERVICE_ORDER_CREATED.getCode();
     }
+
 }

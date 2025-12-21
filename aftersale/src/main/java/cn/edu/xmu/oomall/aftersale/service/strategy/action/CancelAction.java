@@ -11,5 +11,5 @@ public interface CancelAction {
     boolean supports(Integer type, Integer status);
 
     // 2. 定义执行方法
-    void execute(AftersaleOrder bo);
+    Integer execute(AftersaleOrder bo);
 }

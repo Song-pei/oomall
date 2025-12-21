@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.cancel;
 
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction; // 确保引用的是你的接口
+import cn.edu.xmu.oomall.aftersale.service.strategy.enums.AfterSalesStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -21,9 +22,13 @@ public class SimpleCancelAction implements CancelAction {
     }
 
     @Override
-    public void execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo) {
         log.info("[SimpleCancelAction] 命中简单取消策略，boId={}", bo.getId());
         // TODO: 1. 修改数据库状态为 6 (已取消)
         // TODO: 2. 记录操作日志
+
+
+        //取消状态变更为 已取消(6)
+        return AfterSalesStatus.CANCELLED.getCode();
     }
 }

@@ -24,42 +24,38 @@ public class Strategy {
     /**
      * 1. 审核遍历逻辑
      */
-    public void audit(AftersaleOrder bo, String conclusion) {
+    public Integer audit(AftersaleOrder bo, String conclusion) {
         boolean handled = false;
 
         for (AuditAction action : auditActions) {
+            // 利用 action 自己的 supports 方法判断是否匹配
             if (action.supports(bo.getType(), bo.getStatus())) {
                 log.debug("匹配到审核策略: {}", action.getClass().getSimpleName());
-                action.execute(bo, conclusion);
-                handled = true;
-                break;
+
+                // 直接执行并返回 Action 给出的状态码
+                return action.execute(bo, conclusion);
             }
         }
+        // 没找到策略
+        log.error("未找到匹配的审核策略 (type={}, status={})", bo.getType(), bo.getStatus());
+        return null;
 
-        if (!handled) {
-            log.error("未找到匹配的审核策略 (type={}, status={})", bo.getType(), bo.getStatus());
-        }
     }
 
     /**
      * 2. 取消遍历逻辑
      */
-    public void cancel(AftersaleOrder bo) {
-        boolean handled = false;
-
+    public Integer cancel(AftersaleOrder bo) {
         for (CancelAction action : cancelActions) {
             // Cancel 需要根据 type 和 status 判断
             if (action.supports(bo.getType(), bo.getStatus())) {
                 log.debug("匹配到取消策略: {}", action.getClass().getSimpleName());
-                action.execute(bo);
-                handled = true;
-                break;
+                //接执行并返回 Action 给出的状态码
+                return action.execute(bo);
             }
         }
 
-        if (!handled) {
-            //抛异常
-            log.warn("未找到匹配的取消策略 (type={}, status={})，将仅修改状态", bo.getType(), bo.getStatus());
-        }
+        log.warn("未找到匹配的取消策略 (type={}, status={})，将仅修改状态", bo.getType(), bo.getStatus());
+        return null;
     }
 }

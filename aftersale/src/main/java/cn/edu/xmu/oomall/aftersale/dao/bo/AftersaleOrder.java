@@ -4,6 +4,7 @@ import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
 import cn.edu.xmu.javaee.core.model.OOMallObject;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.impl.Strategy;
+import cn.edu.xmu.oomall.aftersale.service.strategy.enums.AfterSalesStatus; // 导入枚举
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,6 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @CopyFrom(AftersaleOrderPo.class)
 public class AftersaleOrder extends OOMallObject {
-
 
     private Long shopId;
     private Long customerId;
@@ -52,23 +52,34 @@ public class AftersaleOrder extends OOMallObject {
 
     /**
      * 1. 审核服务单
+     * @param strategy 传入的具体策略实现（由 StrategyRouter 获取）
      */
     public void audit(String conclusionIn, String reasonIn, boolean confirm, Strategy strategy) {
         this.setGmtModified(LocalDateTime.now());
 
         if (confirm) {
-            // 同意
+            // ============ 审核通过 ============
             this.conclusion = "同意";
             this.reason = null;
 
-            // 调用 Strategy 里的 audit 方法
             if (strategy != null) {
-                strategy.audit(this, conclusionIn);
+                // 【核心修改】
+                // 状态由 Strategy 决定，不再硬编码为 1
+                // 维修策略返回 3 (已生成服务单)，退换策略返回 1 (待验收)
+                Integer nextStatus = strategy.audit(this, conclusionIn);
+
+                if (nextStatus != null) {
+                    this.status = nextStatus;
+                } else {
+                    // 防御性逻辑：如果策略没返回状态，默认流转到待验收，避免数据异常
+                    log.warn("Strategy audit returned null, fallback to WAIT_FOR_INSPECTION");
+                    this.status = AfterSalesStatus.WAIT_FOR_INSPECTION.getCode();
+                }
             }
-            this.status = 1;
         } else {
-            // 拒绝
-            this.status = 7;
+            // ============ 审核拒绝 ============
+            // 使用枚举，状态 7
+            this.status = AfterSalesStatus.REJECTED.getCode();
             this.conclusion = "不同意";
             this.reason = reasonIn;
         }
@@ -81,13 +92,20 @@ public class AftersaleOrder extends OOMallObject {
     public void cancel(Strategy strategy) {
         this.setGmtModified(LocalDateTime.now());
 
-        // 1. 调用 Strategy 里的 cancel 方法 (执行外部操作，如释放库存)
-        // 此时状态还是旧状态 (比如 0-待审核)
+        Integer nextStatus = null;
+
+        // 1. 调用 Strategy 执行外部操作 (如拦截物流)
         if (strategy != null) {
-            strategy.cancel(this);
+            // 【核心修改】接收策略返回的状态码
+            nextStatus = strategy.cancel(this);
         }
 
-        // 2. 修改自身状态为 已取消 (假设是 8)
-        this.status = 8;
+        // 2. 修改自身状态
+        if (nextStatus != null) {
+            this.status = nextStatus;
+        } else {
+            // 修正：原代码写的是 8 (已完成)，根据枚举应该是 6 (取消)
+            this.status = AfterSalesStatus.CANCELLED.getCode();
+        }
     }
 }
