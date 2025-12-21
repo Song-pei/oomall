@@ -10,15 +10,9 @@ import org.springframework.stereotype.Component;
  * 场景：维修单审核通过后生成了“服务单”。
  */
 @Slf4j
-@Component
+@Component("serviceCancelAction")
 public class ServiceCancelAction implements CancelAction {
 
-    @Override
-    public boolean supports(Integer type, Integer status) {
-        // 对应type=2(维修), status=3(已生成服务单)
-        // 只有维修类型会进入状态 3
-        return type == 2 && status == 3;
-    }
 
     @Override
     public Integer execute(AftersaleOrder bo) {

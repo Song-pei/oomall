@@ -1,0 +1,39 @@
+# src/main/resources/application.yml (或者是 strategy-rules.yml)
+after-sale:
+  strategies:
+    # --- 审核流程 (AUDIT) ---
+    # 退货(0) + 待审核(0) -> ExpressAuditAction
+    - type: 0
+      status: 0
+      opt: "AUDIT"
+      bean-name: "expressAuditAction"
+      desc: "退货审核"
+
+    # 换货(1) + 待审核(0) -> ExpressAuditAction (复用)
+    - type: 1
+      status: 0
+      opt: "AUDIT"
+      bean-name: "expressAuditAction"
+      desc: "换货审核"
+
+    # 维修(2) + 待审核(0) -> FixAuditAction
+    - type: 2
+      status: 0
+      opt: "AUDIT"
+      bean-name: "fixAuditAction"
+      desc: "维修审核"
+
+    # --- 取消流程 (CANCEL) ---
+    # 维修(2) + 待审核(0)
+    - type: 2
+      status: 0
+      opt: "CANCEL"
+      bean-name: "simpleCancelAction"
+      desc: "维修未审核取消"
+
+    # 退货(0) + 待验收(1)
+    - type: 0
+      status: 1
+      opt: "CANCEL"
+      bean-name: "expressCancelAction"
+      desc: "退货物流拦截"

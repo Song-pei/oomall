@@ -3,13 +3,17 @@ package cn.edu.xmu.oomall.aftersale.dao.bo;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
 import cn.edu.xmu.javaee.core.model.OOMallObject;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
-import cn.edu.xmu.oomall.aftersale.service.strategy.impl.Strategy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import cn.edu.xmu.javaee.core.exception.BusinessException;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -187,61 +191,79 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
 
     /**
      * 1. 审核服务单
-     * @param strategy 传入的具体策略实现（由 StrategyRouter 获取）
+     * @param router 传入策略路由工具
      */
-    public void audit(String conclusionIn, String reasonIn, boolean confirm, Strategy strategy) {
+    public void audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router) {
         this.setGmtModified(LocalDateTime.now());
+
+        // 1. 基础状态校验
+        if (!UNAUDIT.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
+        }
 
         if (confirm) {
             // ============ 审核通过 ============
             this.conclusion = "同意";
             this.reason = null;
 
-            if (strategy != null) {
-                // 【核心修改】
-                // 状态由 Strategy 决定，不再硬编码为 1
-                // 维修策略返回 3 (已生成服务单)，退换策略返回 1 (待验收)
-                Integer nextStatus = strategy.audit(this, conclusionIn);
+            // 2. 使用 Router 获取具体的 Action
+            AuditAction action = router.routeAudit(this.type, this.status);
 
-                if (nextStatus != null) {
-                    this.status = nextStatus;
-                } else {
-                    // 防御性逻辑：如果策略没返回状态，默认流转到待验收，避免数据异常
-                    log.warn("Strategy audit returned null, fallback to WAIT_FOR_INSPECTION");
-                    //现简单修改，后续可能需要使用allowStatus补充
-                    this.status = UNCHECK;
-                }
+            if (action == null) {
+                log.error("未找到审核策略: type={}, status={}", this.type, this.status);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的审核策略");
             }
+
+            // 3. 执行策略并获取目标状态
+            Integer nextStatus = action.execute(this, conclusionIn);
+
+            // 4.结合 allowStatus 校验状态流转是否合法
+            if (nextStatus != null && this.allowStatus(nextStatus)) {
+                this.status = nextStatus;
+            } else {
+                log.error("审核通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "审核后状态流转异常");
+            }
+
         } else {
             // ============ 审核拒绝 ============
-            //同上述的审核通过，应当经过 allowStatus 方法检查
-            this.status = NOTACCEPT;
-            this.conclusion = "不同意";
-            this.reason = reasonIn;
+            // 目标状态: NOTACCEPT (6)
+            if (this.allowStatus(NOTACCEPT)) {
+                this.status = NOTACCEPT;
+                this.conclusion = "不同意";
+                this.reason = reasonIn;
+            } else {
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态无法拒绝");
+            }
         }
     }
 
 
     /**
      * 2. 取消服务单
+     * @param router 传入策略路由工具
      */
-    public void cancel(Strategy strategy) {
+    public void cancel(StrategyRouter router) {
         this.setGmtModified(LocalDateTime.now());
 
-        Integer nextStatus = null;
+        // 1. 尝试获取特殊的取消策略 (如拦截物流、取消工单)
+        CancelAction action = router.routeCancel(this.type, this.status);
 
-        // 1. 调用 Strategy 执行外部操作 (如拦截物流)
-        if (strategy != null) {
-            // 【核心修改】接收策略返回的状态码
-            nextStatus = strategy.cancel(this);
+        Integer nextStatus = null;
+        if (action != null) {
+            // 执行特殊策略
+            nextStatus = action.execute(this);
+        } else {
+            // 如果没有特殊策略，默认流转到 CANCEL 状态
+            nextStatus = CANCEL;
         }
 
-        // 2. 修改自身状态
-        if (nextStatus != null) {
+        // 2. 结合 allowStatus 校验状态流转是否合法
+        if (nextStatus != null && this.allowStatus(nextStatus)) {
             this.status = nextStatus;
         } else {
-            // 同理，可能应当allowStatus 方法检查
-            this.status = CANCEL;
+            log.warn("尝试取消订单失败，状态流转不允许: id={}, current={}, target={}", this.id, this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
     }
 }

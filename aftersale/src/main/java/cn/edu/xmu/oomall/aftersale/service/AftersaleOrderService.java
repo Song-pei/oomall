@@ -7,7 +7,6 @@ import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
-import cn.edu.xmu.oomall.aftersale.service.strategy.impl.Strategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
+
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ import java.util.Objects;
 public class AftersaleOrderService {
 
 
-    private final Strategy strategy;
+    private final StrategyRouter strategyRouter;
     private final AftersaleOrderDao aftersaleOrderDao;
 
     /**
@@ -68,7 +69,7 @@ public class AftersaleOrderService {
         }
 
         // 4. 执行 BO 业务逻辑
-        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategy);
+        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategyRouter);
 
         // 5. 将 BO 改后的状态同步回 PO
         po = CloneFactory.copy(po, bo);

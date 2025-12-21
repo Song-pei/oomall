@@ -17,19 +17,11 @@ import org.springframework.stereotype.Component;
  * 场景：维修单(Type=2) 审核通过时，需要调用第三方服务创建工单
  */
 @Slf4j
-@Component
+@Component("fixAuditAction")
 public class FixAuditAction implements AuditAction {
 
     @Resource
     private ServiceOrderClient serviceOrderClient;
-
-    @Override
-    public boolean supports(Integer type, Integer status) {
-        log.info("正在匹配策略 FixAuditAction: 期望(type=2, status=0), 实际传入(type={}, status={})", type, status);
-        // 核心筛选：必须是 维修(2) 且 待审核(0)
-        return type == 2 && status.equals( AftersaleOrder.UNAUDIT);
-    }
-
     @Override
     public Integer execute(AftersaleOrder bo, String conclusion) {
         log.info("[FixAuditAction] 开始执行维修单审核逻辑，boId={}, conclusion={}", bo.getId(), conclusion);
