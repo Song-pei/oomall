@@ -10,15 +10,9 @@ import org.springframework.stereotype.Component;
  * 场景：刚刚提交申请，还在“待审核”状态，此直接修改状态即可。
  */
 @Slf4j
-@Component
+@Component("simpleCancelAction")
 public class SimpleCancelAction implements CancelAction {
 
-    @Override
-    public boolean supports(Integer type, Integer status) {
-        // 对应type=0,1,2 且 status=0
-        // (只要是待审核状态，无论什么类型，都是简单取消)
-        return status == 0;
-    }
 
     @Override
     public Integer execute(AftersaleOrder bo) {

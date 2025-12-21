@@ -7,9 +7,7 @@ import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
  */
 public interface CancelAction {
 
-    // 1. 定义筛选方法
-    boolean supports(Integer type, Integer status);
 
-    // 2. 定义执行方法
+    // 1. 定义执行方法
     Integer execute(AftersaleOrder bo);
 }

@@ -10,15 +10,9 @@ import org.springframework.stereotype.Component;
  * 场景：审核通过进入“待验收”，说明用户可能已经把货寄出了，或者我们需要处理物流信息。
  */
 @Slf4j
-@Component
+@Component("expressCancelAction")
 public class ExpressCancelAction implements CancelAction {
 
-    @Override
-    public boolean supports(Integer type, Integer status) {
-        // 对应type=0(退货) 或 1(换货), status=1(待验收)
-        // 只有退换货才有“待验收”这个环节
-        return status == 1 && (type == 0 || type == 1);
-    }
 
     @Override
     public Integer execute(AftersaleOrder bo) {

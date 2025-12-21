@@ -10,16 +10,9 @@ import org.springframework.stereotype.Component;
  * 适用场景：退货(0) 或 换货(1) 的待审核(0) 状态
  */
 @Slf4j
-@Component
+@Component("expressAuditAction")
 public class ExpressAuditAction implements AuditAction {
 
-    @Override
-    public boolean supports(Integer type, Integer status) {
-        // 核心筛选逻辑：
-        // 1. 状态必须是 待审核(0)
-        // 2. 类型必须是 退货(0) 或 换货(1)
-        return status.equals(AftersaleOrder.UNAUDIT) && (type == 0 || type == 1);
-    }
 
     @Override
     public Integer execute(AftersaleOrder bo, String conclusion) {
