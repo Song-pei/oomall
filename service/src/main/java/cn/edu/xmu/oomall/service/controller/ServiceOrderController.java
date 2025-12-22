@@ -146,6 +146,6 @@ public class ServiceOrderController {
         }
         ServiceOrderCancleDto dto= new ServiceOrderCancleDto();
         dto.setResult();
-         return cancleServiceOrder(did,id,user,receiveExpressDto.getResult());
+        return cancleServiceOrder(did,id,user,receiveExpressDto.getResult());
         }
 }
