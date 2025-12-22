@@ -36,7 +36,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Long orderId;
     private Long serviceOrderId;
 
-    private Integer type;
+    private Integer type; //0换货，1退货, 2维修
     private Integer status;
     private String conclusion;
     private String reason;
@@ -149,7 +149,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     }
 
     /**
-     * 1. 审核服务单
+     * 1. 审核售后单
      * @param router 传入策略路由工具
      */
     public void audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router) {
@@ -197,10 +197,10 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
 
 
     /**
-     * 2. 取消服务单
+     * 2. 顾客取消售后单
      * @param router 传入策略路由工具
      */
-    public void cancel(StrategyRouter router) {
+    public void customerCancel(StrategyRouter router) {
         // 1. 获取取消策略
         CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
 

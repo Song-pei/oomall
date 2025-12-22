@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.aftersale.service.feign;
 
+import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCreateDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,5 +16,12 @@ public interface ServiceOrderClient {
             @PathVariable("id") Long afterSalesId,
             @RequestHeader(value = "authorization", required = false) String token,
             @RequestBody ServiceOrderCreateDTO payload
+    );
+    @PutMapping("/maintainers/{did}/service/{id}/cancel")
+    InternalReturnObject<ServiceOrderResponseDTO> customerCancelServiceOrder(
+            @PathVariable("did") Long maintainerId,
+            @PathVariable("id") Long serviceOrderId,
+            @RequestHeader(value = "authorization", required = false) String token,
+            @RequestBody ServiceOrderCancelDTO payload
     );
 }
