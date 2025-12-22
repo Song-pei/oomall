@@ -32,5 +32,5 @@ INSERT INTO aftersale_aftersaleorder (
     customer_region_id, customer_address, type, status, express_id, gmt_create, gmt_modified
 ) VALUES (
              1, 1, 1001, 5005, '李四', '13900139000',
-             3001, '北京市朝阳区某某小区A座101室', 1, 0, NULL, NOW(), NOW()
+             3001, '北京市朝阳区某某小区A座101室', 2, 0, NULL, NOW(), NOW()
          );

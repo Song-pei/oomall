@@ -1,0 +1,48 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+spring:
+  application:
+    name: aftersale
+  cloud:
+      compatibility-verifier:
+       enabled: false
+      nacos:
+        discovery:
+          enabled: false
+        config:
+          enabled: false
+  config:
+    import: classpath:strategy-rules.yml
+
+  autoconfigure:
+      exclude:
+        - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+        - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
+  datasource:
+    #JDBC drivers
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #database url
+    url: jdbc:mysql://localhost:3306/aftersale?serverTimezone=Asia/Shanghai&useSSL=false
+    #    url: jdbc:mysql://mysql:3306Asia/Shanghai
+    #database username and password
+    username: "root"
+    password: "lgz123456"
+server:
+  port: 8081
+
+service-module:
+  url: http://localhost:8085
+
+"logistics-module":
+  url: http://localhost:8090
+oomall:
+  core:
+    page-size:
+      max: 1000
+      default: 10
+  region:
+    timeout: 3600
