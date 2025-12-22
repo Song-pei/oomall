@@ -60,7 +60,7 @@ public class StrategyRouter {
      * @param requiredType 期望返回的接口类型 (AuditAction.class 等)
      * @return 具体策略实现
      */
-    public <T> T route(Integer type, Integer status, String opt, Class<T> requiredType) {
+    public <T> T route(Byte type, Byte status, String opt, Class<T> requiredType) {
         StrategyKey key = new StrategyKey(type, status, opt);
         Object bean = strategyMap.get(key);
 
