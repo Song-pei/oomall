@@ -30,7 +30,7 @@ spring:
     #    url: jdbc:mysql://mysql:3306Asia/Shanghai
     #database username and password
     username: "root"
-    password: "123456"
+    password: "lgz123456"
 server:
   port: 8081
 
