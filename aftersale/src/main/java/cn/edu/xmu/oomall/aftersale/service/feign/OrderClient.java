@@ -10,6 +10,7 @@ public interface OrderClient {
     @GetMapping("internal/shops/{shopId}/orders/{id}")
     InternalReturnObject<OrderResponseDTO> findOrderById(
             @PathVariable("shopId") Long shopId,
-            @PathVariable("id") Long orderId
+            @PathVariable("id") Long orderId,
+            @RequestHeader(value = "authorization", required = false) String token
     );
 }
