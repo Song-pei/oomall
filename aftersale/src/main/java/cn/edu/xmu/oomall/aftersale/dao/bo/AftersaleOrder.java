@@ -205,14 +205,14 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
      * 2. 顾客取消售后单
      * @param router 传入策略路由工具
      */
-    public void customerCancel(StrategyRouter router) {
+    public void customerCancel(StrategyRouter router,UserToken user) {
         // 1. 获取取消策略
         CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
 
         Integer nextStatus = null;
         if (action != null) {
             // 执行策略
-            nextStatus = action.execute(this);
+            nextStatus = action.execute(this,user);
         } else {
             // 如果没有策略，默认流转到 CANCEL 状态
             nextStatus = CANCEL;

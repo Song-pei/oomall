@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.cancel;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
@@ -25,7 +26,7 @@ public class ServiceCancelAction implements CancelAction {
     @Resource
     private ServiceOrderClient serviceOrderClient;
     @Override
-    public Integer execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo, UserToken user) {
         log.info("[ServiceCancelAction] 命中服务单取消策略，boId={}", bo.getId());
         // 必须存在服务单号
         if (bo.getServiceOrderId() == null) {
@@ -37,20 +38,19 @@ public class ServiceCancelAction implements CancelAction {
                 .result("顾客取消服务单")
                 .build();
         // 获取 Token
-        String token = null;
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            token = attributes.getRequest().getHeader("authorization");
-        }
+        String token = user.getName();
+           /* ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                token = attributes.getRequest().getHeader("authorization");
+            }*/
         /**
          * 此处需要调用服务模块的查找服务商Id的api,取消服务单需要传入服务商id,但售后表没有
          * 也可以不要服务商Id,不按照qm api页面,只传入服务单Id,之后调用服务模块取消
-         *
+         * 目前把服务商id去掉
          */
         try {
             // 远程调用
             InternalReturnObject<ServiceOrderResponseDTO> ret = serviceOrderClient.customerCancelServiceOrder(
-                    bo.getShopId(), /*此处应为服务商id,具体需要修改项目*/
                     bo.getServiceOrderId(),
                     token,
                     dto

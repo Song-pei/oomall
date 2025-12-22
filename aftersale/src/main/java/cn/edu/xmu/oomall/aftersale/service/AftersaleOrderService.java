@@ -107,7 +107,7 @@ public class AftersaleOrderService {
 
 
         // 4. 执行 BO 业务逻辑
-        bo.customerCancel(strategyRouter);
+        bo.customerCancel(strategyRouter,user);
 
         // 5.BO 更新审计信息
         bo.setModifier(user);

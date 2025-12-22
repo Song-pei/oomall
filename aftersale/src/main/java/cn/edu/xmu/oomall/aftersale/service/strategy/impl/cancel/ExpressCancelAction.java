@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.cancel;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
@@ -24,17 +25,17 @@ public class ExpressCancelAction implements CancelAction {
     @Resource
     private ExpressClient expressClient;
     @Override
-    public Integer execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo, UserToken user) {
         log.info("[ExpressCancelAction] 命中物流拦截策略，boId={}", bo.getId());
         try {
 
 
-            //  获取 Token
-            String token = null;
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            // 获取 Token
+            String token = user.getName();
+           /* ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 token = attributes.getRequest().getHeader("authorization");
-            }
+            }*/
             // 远程调用物流服务
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),

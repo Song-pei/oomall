@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.aftersale.service.strategy.impl.cancel;
 
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction; // 确保引用的是你的接口
 import lombok.extern.slf4j.Slf4j;
@@ -15,11 +16,11 @@ public class SimpleCancelAction implements CancelAction {
 
 
     @Override
-    public Integer execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo, UserToken user) {
         log.info("[SimpleCancelAction] 命中简单取消策略，boId={}", bo.getId());
 
 
-        // 4. 记录
+
         log.info("[SimpleCancelAction] 售后单取消成功, 顾客编号：{},售后单号: {}", bo.getCustomerId(),bo.getId());
         //返回取消状态
         return AftersaleOrder.CANCEL;

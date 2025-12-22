@@ -16,11 +16,10 @@ public interface ServiceOrderClient {
             @RequestHeader(value = "authorization", required = false) String token,
             @RequestBody ServiceOrderCreateDTO payload
     );
-    @PutMapping("/maintainers/{did}/service/{id}/cancel")
+    @PutMapping("/service/{id}/cancel")
     InternalReturnObject<ServiceOrderResponseDTO> customerCancelServiceOrder(
-            @PathVariable("did") Long did,
             @PathVariable("id") Long serviceOrderId,
-            @RequestHeader(value = "authorization", required = false) String token,
+            @RequestHeader(value = "authorization",required = false) String token,
             @RequestBody ServiceOrderCancelDTO payload
     );
 }
