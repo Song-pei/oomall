@@ -9,20 +9,21 @@ import lombok.NoArgsConstructor;
  * 创建运单的请求参数 DTO
  */
 @Data
-@Builder //
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PackageCreateDTO {
 
-    private Contact sender;       // 寄件人
-    private Contact delivery;     // 收件人
-    private Long shopLogisticId;  // 商家物流ID
-    private String goodsType;     // 物品类型
-    private Integer weight;       // 重量
-    private Integer payMethod;    // 支付方式
+    private Contact sender;
+    private Contact delivery;
+    private Long shopLogisticId;
+    private String goodsType;
+    // 物流端 ExpressDto 里的 weight 是 Long 类型，这里建议同步修改
+    private Long weight;
+    private Integer payMethod;
 
     /**
-     * 联系人内部类
+     * 将名字改为与物流端结构更接近的定义
      */
     @Data
     @Builder
