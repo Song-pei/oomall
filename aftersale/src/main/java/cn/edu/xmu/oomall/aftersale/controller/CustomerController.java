@@ -48,6 +48,7 @@ public class CustomerController {
             user.setId(1L);
             user.setName("customer-test");
             user.setDepartId(0L);
+            user.setUserLevel(0);
         }
 
 

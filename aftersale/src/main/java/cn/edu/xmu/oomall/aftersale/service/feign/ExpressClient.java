@@ -21,7 +21,7 @@ public interface ExpressClient {
     InternalReturnObject<PackageResponseDTO> cancelPackage(
             @PathVariable("shopId") Long shopId,
             @PathVariable("id") Long expressId,
-            @RequestHeader(value = "authorization", required = false)  String token
+            @RequestHeader(value = "authorization")  String token
 
 
     );
