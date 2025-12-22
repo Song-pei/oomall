@@ -6,6 +6,7 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.validation.NewGroup;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderAcceptDto;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderFinishDto;
+import cn.edu.xmu.oomall.service.controller.dto.ReceiveExpressDto;
 import cn.edu.xmu.oomall.service.service.ServiceOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,5 +98,54 @@ public class ServiceOrderController {
         return new ReturnObject(ReturnNo.OK);
     }
 
+    /**
+     * 接受服务单
+     *
+     * @param did    服务商id
+     * @param id       服务单id
+     * @param receiveExpressDto    服务单接受数据
+     * @param user    登录用户
+     * @return  服务单数据
+     */
+    @PostMapping("/maintainers/{did}/services/{id}/receive")
+    public ReturnObject receiveExpress(
+            @PathVariable("did") Long did,
 
+            @PathVariable("id") Long id,
+            @Validated(NewGroup.class) @RequestBody ReceiveExpressDto receiveExpressDto,
+            UserToken user
+    ) {
+        if (user == null || user.getId() == null) {
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L);
+        }
+
+        if(receiveExpressDto.getAccepted())
+        {
+            try {
+                serviceOrderService.receiveExpress(
+                        did,
+                        id,
+                        user,
+                        receiveExpressDto.getResult()
+                );
+                log.info("运单验收成功: id={}", id);
+                return new ReturnObject(ReturnNo.OK);
+            } catch (IllegalArgumentException e) {
+                log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
+                return new ReturnObject(ReturnNo.FIELD_NOTVALID);
+            } catch (IllegalStateException e) {
+                log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
+                return new ReturnObject(ReturnNo.STATENOTALLOW);
+            } catch (Exception e) {
+                log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
+                return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            }
+        }
+        ServiceOrderCancleDto dto= new ServiceOrderCancleDto();
+        dto.setResult();
+         return cancleServiceOrder(did,id,user,receiveExpressDto.getResult());
+        }
 }

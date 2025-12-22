@@ -61,7 +61,7 @@ public class ExpressAcceptAction implements AcceptAction {
             //处理结果
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 Long expressId = ret.getData().getId();
-                log.info("[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 服务单号: {}", serviceOrder.getExpressId());
+                log.info("[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 运单号: {}", expressId);
                 serviceOrder.setExpressId(expressId);
             } else {
                 log.error("[ExpressAcceptAction] 物流模块返回错误: {}", ret.getErrmsg());
