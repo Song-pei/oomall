@@ -10,6 +10,9 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 /**
  * 退货换货取消策略
  * 场景：审核通过进入“待验收”，说明用户可能已经把货寄出了，或者我们需要处理物流信息。
@@ -26,20 +29,25 @@ public class ExpressCancelAction implements CancelAction {
         try {
 
 
+            // 2. 获取 Token
+            String token = null;
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                token = attributes.getRequest().getHeader("authorization");
+            }
             // 4. 远程调用物流服务
             // token 传 null (内部调用通常放行，或使用 RequestContextHolder 获取)
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),
                     bo.getId(),//此处应为运单Id
-                    null,   //usertoken
-                    0
+                    token
             );
 
             // 5. 处理结果
             if (ret.getErrno() == 0 ) {
                 PackageResponseDTO packageVo = ret.getData();
-                log.info("[ExpressAuditAction] 运单取消成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getExpressNo());
-                // bo.setExpressNo(packageVo.getExpressNo());
+                log.info("[ExpressAuditAction] 运单取消成功, ID: {}, 单号: {}", packageVo.getId(),  packageVo.getBillCode());
+
             } else {
                 log.error("[ExpressAuditAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
