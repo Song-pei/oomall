@@ -24,6 +24,20 @@ after-sale:
       desc: "维修审核"
 
     # --- 取消流程 (CANCEL) ---
+    # 退货(0) + 待审核(0)
+    - type: 0
+      status: 0
+      opt: "CANCEL"
+      bean-name: "simpleCancelAction"
+      desc: "退货未审核取消"
+
+    # 换货(1) + 待审核(0)
+    - type: 1
+      status: 0
+      opt: "CANCEL"
+      bean-name: "simpleCancelAction"
+      desc: "换货未审核取消"
+
     # 维修(2) + 待审核(0)
     - type: 2
       status: 0
@@ -36,4 +50,18 @@ after-sale:
       status: 1
       opt: "CANCEL"
       bean-name: "expressCancelAction"
-      desc: "退货物流拦截"
+      desc: "退货取消运单"
+
+    # 换货(1) + 待验收(1)
+    - type: 1
+      status: 1
+      opt: "CANCEL"
+      bean-name: "expressCancelAction"
+      desc: "换货取消运单"
+
+    # 维修(2) + 已生成服务单(4)
+    - type: 2
+      status: 3
+      opt: "CANCEL"
+      bean-name: "serviceCancelAction"
+      desc: "维修取消服务单"

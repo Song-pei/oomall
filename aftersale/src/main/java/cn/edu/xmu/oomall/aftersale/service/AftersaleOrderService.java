@@ -82,30 +82,40 @@ public class AftersaleOrderService {
     }
 
     /**
-     * 取消售后单
+     * 顾客取消售后单
      */
-    public void cancel(Long id, UserToken user) {
+    public void customerCancel(Long id, UserToken user) {
         log.info("开始取消售后单: id={}, user={}", id, user);
 
         // 1. 查出 PO
         AftersaleOrderPo po = aftersaleOrderDao.findById(id);
         if (po == null) {
+            log.warn("取消失败: 售后单不存在, id={}", id);
             throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");
         }
 
         // 2. 转为 BO
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        // 3. 校验 (请求中：待审核   处理中：待验收/已生成服务单
+        if  (  (!Objects.equals(bo.getStatus(), AftersaleOrder.UNAUDIT))
+             ||(!Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
+             ||(!Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
+        ) {
+            log.warn("取消失败: 状态不正确, id={}, currentStatus={}", id, bo.getStatus());
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
+        }
 
-        // 3. 执行 BO 业务逻辑
-        bo.cancel(strategyRouter);
 
-        // 4.BO 更新审计信息
+        // 4. 执行 BO 业务逻辑
+        bo.customerCancel(strategyRouter);
+
+        // 5.BO 更新审计信息
         bo.setModifier(user);
 
-        // 5. 将 BO 同步回 PO
+        // 6. 将 BO 同步回 PO
         po = CloneFactory.copy(po, bo);
 
-        // 6. 持久化
+        // 7. 持久化
         aftersaleOrderDao.update(po);
 
         log.info("[Service] 取消完成: boId={}, 新状态={}", id, po.getStatus());
