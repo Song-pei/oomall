@@ -158,40 +158,40 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
         }
 
-        if (confirm) {
-            // ============ 审核通过 ============
-            this.conclusion = "同意";
-            this.reason = null;
-
-            // 2. 使用泛型 route 方法获取 AuditAction
-            AuditAction action = router.route(this.type, this.status, "AUDIT", AuditAction.class);
-
-            if (action == null) {
-                log.error("未找到审核策略: type={}, status={}", this.type, this.status);
-                throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的审核策略");
-            }
-
-            // 3. 执行策略并获取目标状态
-            Integer nextStatus = action.execute(this, conclusionIn);
-
-            // 4.结合 allowStatus 校验状态流转是否合法
-            if (nextStatus != null && this.allowStatus(nextStatus)) {
-                this.status = nextStatus;
-            } else {
-                log.error("审核通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
-                throw new BusinessException(ReturnNo.STATENOTALLOW, "审核后状态流转异常");
-            }
-
-        } else {
-            // ============ 审核拒绝 ============
-            // 目标状态: NOTACCEPT (6)
+        // ============ 2. 优先处理：审核拒绝 ============
+        if (!confirm) {
             if (this.allowStatus(NOTACCEPT)) {
                 this.status = NOTACCEPT;
                 this.conclusion = "不同意";
                 this.reason = reasonIn;
+                return; // 处理完直接结束
             } else {
                 throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态无法拒绝");
             }
+        }
+
+        // ============ 3. 主流程：审核通过 ============
+        // 能走到这里说明 confirm 为 true，无需 else
+        this.conclusion = "同意";
+        this.reason = null;
+
+        // 使用泛型 route 方法获取 AuditAction
+        AuditAction action = router.route(this.type, this.status, "AUDIT", AuditAction.class);
+
+        if (action == null) {
+            log.error("未找到审核策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的审核策略");
+        }
+
+        // 执行策略并获取目标状态
+        Integer nextStatus = action.execute(this, conclusionIn);
+
+        // 结合 allowStatus 校验状态流转是否合法
+        if (nextStatus != null && this.allowStatus(nextStatus)) {
+            this.status = nextStatus;
+        } else {
+            log.error("审核通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "审核后状态流转异常");
         }
     }
 
