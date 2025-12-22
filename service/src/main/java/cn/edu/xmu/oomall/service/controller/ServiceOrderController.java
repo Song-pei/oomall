@@ -6,12 +6,17 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.validation.NewGroup;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderAcceptDto;
 import cn.edu.xmu.oomall.service.service.ServiceOrderService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
-
+@RestController /*Restful的Controller对象*/
+@RequestMapping(value = "/internal/shops/{shopId}", produces = "application/json;charset=UTF-8")
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class ServiceOrderController {
     private final ServiceOrderService serviceOrderService;
     /**
