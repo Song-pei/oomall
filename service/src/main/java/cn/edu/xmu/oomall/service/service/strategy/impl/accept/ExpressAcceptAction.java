@@ -36,16 +36,25 @@ public class ExpressAcceptAction implements AcceptAction {
                 .goodsType(expressDto.getGoodsType()).weight(expressDto.getWeight())
                 .payMethod(expressDto.getPayMethod())
                 .build();*/
+        dto.getSender().setRegionId();
+        dto.getSender().setAddress();
+        dto.getSender().setMobile(serviceOrder.getMaintainerMobile());
+        dto.getSender().setName(serviceOrder.getMaintainerName());
 
 
+        dto.getDelivery().setRegionId(serviceOrder.getRegionId());
+        dto.getDelivery().setAddress(serviceOrder.getAddress());
+        dto.getDelivery().setMobile(serviceOrder.getMobile());
+        dto.getDelivery().setRegionId(serviceOrder.getRegionId());
         String token = null;
 
         try {
             // 2. 远程调用
             ReturnObject ret = expressClient.createPackage(
-
-                    token,
-                    dto
+                    serviceOrder.getShopId(),
+                    dto,
+                    user,
+                    user.getUserLevel()
             );
 
             // 3. 处理结果
