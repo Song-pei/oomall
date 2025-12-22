@@ -42,18 +42,21 @@ public class ServiceOrderService {
     * auth:Mingyu Li
     * */
     public void acceptServiceOrder(Long did,long id, UserToken user) {
-        ServiceOrderPo serviceOrderPo = serviceOrderDao.findById(id);
-        ServiceOrder serviceOrder = CloneFactory.copy(new ServiceOrder(),serviceOrderPo);
+        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);
         //bo执行业务逻辑
         serviceOrder.accept(user,strategyRouter);
         //更新审计信息
         serviceOrder.setModifier(user);
 
-        //将BO同步回 PO
-        serviceOrderPo = CloneFactory.copy(serviceOrderPo, serviceOrder);
-        serviceOrderDao.save(serviceOrderPo);
+        serviceOrderDao.save(serviceOrder, user);
 
         log.info("[Service] 接受完成: boId={}", id);
-
     }
+
+    public void finish(Long did, long id, String result, UserToken user){
+        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);
+        serviceOrder.finish(result, user, strategyRouter);
+        log.info("[Service] 完成: boId={}", id);
+    }
+
 }

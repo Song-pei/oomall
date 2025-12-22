@@ -5,43 +5,47 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
-import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+//import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider; //
 
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "service_service")
+@Table(name = "service_provider")
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Data
-@CopyFrom({ServiceOrder.class})
-public class ServiceOrderPo {
+//@CopyFrom({ServiceProvider.class})
+public class ServiceProviderPo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long maintainerId;
-    private Long shopId;
+    private String name;
 
-    private String result;
+    private String introduction;
 
-    private Byte type;
-
-    private String description;
-
-    private Long regionId;
-    private String address;
+    private LocalDateTime applyTime;
 
     private String consignee;
+
+    private String address;
+
     private String mobile;
+
+    private String category;
+
+    private String qualification;
+
+    private String username;
+
+    private String legalRep;
 
     private Byte status;
 
-    private String maintainerMobile;
-    private String maintainerName;
+    private Long regionId;
 
     private Long creatorId;
     private String creatorName;
@@ -51,8 +55,4 @@ public class ServiceOrderPo {
 
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
-
-    private Long expressId;
-    private Long productId;
-    private String serialNo;
 }

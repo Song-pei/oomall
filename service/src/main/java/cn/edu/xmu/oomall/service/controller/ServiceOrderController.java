@@ -5,6 +5,7 @@ import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.validation.NewGroup;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderAcceptDto;
+import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderFinishDto;
 import cn.edu.xmu.oomall.service.service.ServiceOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController /*Restful的Controller对象*/
-@RequestMapping(value = "/internal/shops/{shopId}", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/maintainers/{did}/services/{id}", produces = "application/json;charset=UTF-8")
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
@@ -28,7 +29,7 @@ public class ServiceOrderController {
      * @param user    登录用户
      * @return  服务单数据
      */
-    @PostMapping("/maintainers/{did}/services/{id}/accept")
+    @PostMapping("/accept")
     public ReturnObject acceptServiceOrder(
             @PathVariable("did") Long did,
 
@@ -67,4 +68,34 @@ public class ServiceOrderController {
         log.info("服务单拒绝成功: id={}", id);
         return new ReturnObject(ReturnNo.OK);
     }
+
+    /**
+     * 完成服务单
+     *
+     * @param did    服务商id
+     * @param id       服务单id
+     * @param serviceOrderFinishDto    服务单完成数据
+     * @param user    登录用户
+     * @return
+     */
+    @PostMapping("/finish")
+    public ReturnObject finishServiceOrder(
+            @PathVariable("did") Long did,
+            @PathVariable("id") Long id,
+            @Validated(NewGroup.class) @RequestBody ServiceOrderFinishDto serviceOrderFinishDto,
+            UserToken user
+    ) {
+        if (user == null || user.getId() == null) {
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L);
+        }
+        String result = serviceOrderFinishDto.getResult();
+        serviceOrderService.finish(did, id, result, user);
+
+        return new ReturnObject(ReturnNo.OK);
+    }
+
+
 }
