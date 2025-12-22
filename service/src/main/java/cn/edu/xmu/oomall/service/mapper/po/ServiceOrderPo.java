@@ -52,6 +52,7 @@ public class ServiceOrderPo {
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
 
+    private Long expressId;
     private Long productId;
     private String serialNo;
     private String expressId;

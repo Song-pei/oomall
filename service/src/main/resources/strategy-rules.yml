@@ -43,3 +43,17 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "expressCancelAction"
       desc: "寄件维修中取消"
+
+    # 完成服务
+    # 上门(0) + 维修中(3) -> SimpleFinishAction
+    - type: 0
+      status: 3
+      opt: "FINISH"
+      bean-name: "simpleFinishAction"
+      desc: "上门维修完成"
+    # 寄件(1) + 维修中(3) -> ExpressFinishAction
+    - type: 1
+      status: 3
+      opt: "FINISH"
+      bean-name: "expressFinishAction"
+      desc: "寄件维修完成"

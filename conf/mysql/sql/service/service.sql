@@ -74,6 +74,7 @@ CREATE TABLE `service_service` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `gmt_modified` datetime DEFAULT NULL,
   `product_id` bigint DEFAULT NULL,
+  `express_id` bigint DEFAULT NULL,
   `serial_no` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `express_id` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -88,6 +89,46 @@ LOCK TABLES `service_service` WRITE;
 /*!40000 ALTER TABLE `service_service` DISABLE KEYS */;
 /*!40000 ALTER TABLE `service_service` ENABLE KEYS */;
 UNLOCK TABLES;
+--
+-- Table structure for table `service_provider`
+--
+
+DROP TABLE IF EXISTS `service_provider`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `service_provider` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `name` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `introduction` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `apply_time` datetime DEFAULT NULL,
+    `consignee` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `mobile` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `category` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `qualification` varchar(512) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `username` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `legal_rep` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `status` tinyint DEFAULT NULL,
+    `region_id` bigint DEFAULT NULL,
+    `creator_id` bigint DEFAULT NULL,
+    `creator_name` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `modifier_id` bigint DEFAULT NULL,
+    `modifier_name` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gmt_modified` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `service_provider`
+--
+
+LOCK TABLES `service_provider` WRITE;
+/*!40000 ALTER TABLE `service_provider` DISABLE KEYS */;
+/*!40000 ALTER TABLE `service_provider` ENABLE KEYS */;
+UNLOCK TABLES;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

@@ -9,6 +9,7 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
+import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
 import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -22,9 +23,6 @@ import java.util.*;
 import static cn.edu.xmu.javaee.core.model.Constants.SYSTEM;
 
 /**
- * 2023-dgn3-009
- *
- * @author huangzian
  * @Slf4j
  * @Builder
  * @NoArgsConstructor
@@ -49,7 +47,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     private Long shopId;
 
     private String result;
-    private Byte type;//0上门 1寄件 (2线下)
+    private Byte type;//0上门 1寄件 2线上
     private String description;
 
     private Long regionId;
@@ -63,6 +61,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     private String maintainerMobile;
     private String maintainerName;
 
+    private Long expressId;
     private Long productId;
     private String serialNo;
     private String expressId;
@@ -94,8 +93,8 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             put(UNASSIGNED, "待派工");
             put(UNCHECK, "待收件");
             put(REPAIRING, "维修中");
-            put(FINISH, "已完成");
             put(CANCEL, "已取消");
+            put(FINISH, "已完成");
         }
     };
 
@@ -153,14 +152,14 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         return STATUSNAMES.get(this.status);
     }
 
-//    private void changeStatus(Byte status, UserToken user) {
-//        log.debug("changeStatus: id = {}, status = {}", this.id, status);
-//        if (!this.allowStatus(status)) {
-//            throw new BusinessException(ReturnNo.STATENOTALLOW, String.format(ReturnNo.STATENOTALLOW.getMessage(), "物流单", this.id, STATUSNAMES.get(this.status)));
-//        }
-//        this.setStatus(status);
-//        this.expressDao.save(this, user);
-//    }
+    private void changeStatus(Byte status, UserToken user) {
+        log.debug("changeStatus: id = {}, status = {}", this.id, status);
+        if (!this.allowStatus(status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, String.format(ReturnNo.STATENOTALLOW.getMessage(), "服务单", this.id, STATUSNAMES.get(this.status)));
+        }
+        this.setStatus(status);
+        this.serviceOrderDao.save(this, user);
+    }
 
     public ServiceOrder create(UserToken user) {
 
@@ -196,6 +195,36 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "接受后状态流转异常");
         }
     }
+
+    /**
+     * 3. 完成服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void finish(String result, UserToken user, StrategyRouter strategyRouter) {
+        // 状态校验：只有维修中才能完成
+        if (!REPAIRING.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许完成服务单");
+        }
+
+        this.result = result;
+
+        FinishAction action = strategyRouter.route(this.type.intValue(), this.status.intValue(), "FINISH", FinishAction.class);
+        if (action == null) {
+            log.error("未找到完成策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的完成策略");
+        }
+
+        Byte nextStatus = action.execute(this, user);
+
+        if (!FINISH.equals(nextStatus)) {
+            log.error("完成策略返回非法目标状态: current={}, next={}", this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "完成后状态流转异常");
+        }
+
+        this.changeStatus(nextStatus, user);
+    }
+
+
     public Long getId() {
         return id;
     }
