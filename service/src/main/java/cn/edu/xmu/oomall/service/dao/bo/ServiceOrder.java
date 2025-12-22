@@ -64,7 +64,6 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     private Long expressId;
     private Long productId;
     private String serialNo;
-    private String expressId;
     @JsonIgnore
     @Setter
     private ServiceOrderDao serviceOrderDao;
@@ -188,12 +187,11 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         Byte nextStatus = action.execute(this, user);
 
         //结合allowStatus校验状态流转是否合法
-        if (nextStatus != null && this.allowStatus(nextStatus)) {
-            this.status = nextStatus;
-        } else {
+        if (!UNASSIGNED.equals(nextStatus)&&!UNCHECK.equals(nextStatus)) {
             log.error("接受通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "接受后状态流转异常");
         }
+        this.changeStatus(nextStatus, user);
     }
 
     /**
@@ -208,7 +206,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
 
         this.result = result;
 
-        FinishAction action = strategyRouter.route(this.type.intValue(), this.status.intValue(), "FINISH", FinishAction.class);
+        FinishAction action = strategyRouter.route(this.type.byteValue(), this.status.byteValue(), "FINISH", FinishAction.class);
         if (action == null) {
             log.error("未找到完成策略: type={}, status={}", this.type, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的完成策略");

@@ -8,6 +8,7 @@ import cn.edu.xmu.oomall.service.dao.ServiceProviderDao;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -26,20 +27,6 @@ public class ExpressAcceptAction implements AcceptAction {
 
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
-        /*
-        *
-        *sendRegionId(expressDto.getSender().getRegionId())
-                .sendAddress(expressDto.getSender().getAddress())
-                .sendMobile(expressDto.getSender().getMobile())
-                .sendName(expressDto.getSender().getName())
-                .receivRegionId(expressDto.getDelivery().getRegionId())
-                .receivAddress(expressDto.getDelivery().getAddress())
-                .receivMobile(expressDto.getDelivery().getMobile())
-                .receivName(expressDto.getDelivery().getName())
-                .contractId(expressDto.getShopLogisticId())
-                .goodsType(expressDto.getGoodsType()).weight(expressDto.getWeight())
-                .payMethod(expressDto.getPayMethod())
-                .build();*/
         ServiceProvider serviceProvider = CloneFactory.copy(new ServiceProvider(),serviceProviderDao.findById(serviceOrder.getMaintainerId()));
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
@@ -60,30 +47,31 @@ public class ExpressAcceptAction implements AcceptAction {
         dto.setWeight(null);
         //无合同相关，无法完成
         dto.setPayMethod(0);
-
+        String token = null;       // 内部调用通常为空，或透传 user token
+        Integer userLevel = null;
         try {
             //远程调用
-            ReturnObject ret = expressClient.createPackage(
+            InternalReturnObject<ExpressPo> ret = expressClient.createPackage(
                     serviceOrder.getShopId(),
                     dto,
-                    user,
-                    user.getUserLevel()
+                    token,
+                    userLevel
             );
 
             //处理结果
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 Long expressId = ret.getData().getId();
-                log.info("[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 服务单号: {}", serviceOrderId);
-                bo.setServiceOrderId(serviceOrderId);
+                log.info("[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 服务单号: {}", serviceOrder.getExpressId());
+                serviceOrder.setExpressId(expressId);
             } else {
-                log.error("[FixAuditAction] 服务模块返回错误: {}", ret.getErrmsg());
+                log.error("[ExpressAcceptAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
-            log.error("[FixAuditAction] 远程调用异常, boId={}", bo.getId(), e);
+            log.error("[ExpressAcceptAction] 远程调用异常, boId={}", serviceOrder.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
         return serviceOrder.UNCHECK;

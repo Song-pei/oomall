@@ -43,12 +43,8 @@ public class ServiceOrderService {
     * */
     public void acceptServiceOrder(Long did,long id, UserToken user) {
         ServiceOrder serviceOrder =  serviceOrderDao.findById(id);
-        //bo执行业务逻辑
         serviceOrder.accept(user,strategyRouter);
-        //更新审计信息
-        serviceOrder.setModifier(user);
 
-        serviceOrderDao.save(serviceOrder, user);
 
         log.info("[Service] 接受完成: boId={}", id);
     }
