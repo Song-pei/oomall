@@ -54,4 +54,5 @@ public class ServiceOrderPo {
 
     private Long productId;
     private String serialNo;
+    private String expressId;
 }

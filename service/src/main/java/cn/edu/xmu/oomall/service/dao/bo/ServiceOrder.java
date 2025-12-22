@@ -65,7 +65,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
 
     private Long productId;
     private String serialNo;
-
+    private String expressId;
     @JsonIgnore
     @Setter
     private ServiceOrderDao serviceOrderDao;
