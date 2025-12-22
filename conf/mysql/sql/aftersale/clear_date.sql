@@ -34,3 +34,10 @@ INSERT INTO aftersale_aftersaleorder (
              1, 1, 1001, 5005, '李四', '13900139000',
              3001, '北京市朝阳区某某小区A座101室', 1, 0, NULL, NOW(), NOW()
          );
+INSERT INTO aftersale_aftersaleorder (
+    id, shop_id, customer_id, order_id, customer_name, customer_mobile,
+    customer_region_id, customer_address, type, status, express_id, gmt_create, gmt_modified
+) VALUES (
+             2, 1, 1001, 5010, '赵三', '13900139000',
+             3005, '北京市海淀区某某小区B座101室', 2, 0, NULL, NOW(), NOW()
+         );

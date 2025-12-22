@@ -28,9 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         })
 @AutoConfigureMockMvc
 @Transactional(propagation = Propagation.REQUIRED)
-@Import(AftersaleOrderControllerTest.MockConfig.class)
+@Import(ShopControllerTest.MockConfig.class)
 @Rollback(false)
-public class AftersaleOrderControllerTest {
+public class ShopControllerTest {
     @TestConfiguration
     static class MockConfig {
         @Bean

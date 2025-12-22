@@ -108,3 +108,11 @@ Content-Type: application/json
         client.assert(response.body.errno === 707, "Errno should be 707");
     });
 %}
+### 6.顾客取消售后单-待审核-simple
+PUT {{host}}/aftersales/1
+Content-Type: application/json
+
+{
+
+}
+

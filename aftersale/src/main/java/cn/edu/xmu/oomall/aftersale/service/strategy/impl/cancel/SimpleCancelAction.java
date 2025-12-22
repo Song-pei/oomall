@@ -18,11 +18,10 @@ public class SimpleCancelAction implements CancelAction {
     public Integer execute(AftersaleOrder bo) {
         log.info("[SimpleCancelAction] 命中简单取消策略，boId={}", bo.getId());
 
-        // 3. 直接改状态
-        bo.setStatus(AftersaleOrder.CANCEL);
+
         // 4. 记录
         log.info("[SimpleCancelAction] 售后单取消成功, 顾客编号：{},售后单号: {}", bo.getCustomerId(),bo.getId());
-        //取消状态变更为 已取消(6)
+        //返回取消状态
         return AftersaleOrder.CANCEL;
 
     }
