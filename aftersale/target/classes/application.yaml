@@ -14,6 +14,8 @@ spring:
           enabled: false
         config:
           enabled: false
+  config:
+    import: classpath:strategy-rules.yml
 
   autoconfigure:
       exclude:
@@ -35,6 +37,8 @@ server:
 service-module:
   url: http://localhost:8085
 
+"logistics-module":
+  url: http://localhost:8090
 oomall:
   core:
     page-size:

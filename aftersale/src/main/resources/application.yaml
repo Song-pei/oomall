@@ -30,16 +30,15 @@ spring:
     #    url: jdbc:mysql://mysql:3306Asia/Shanghai
     #database username and password
     username: "root"
-    password: "123456"
+    password: "lgz123456"
 server:
   port: 8081
 
 service-module:
   url: http://localhost:8085
 
-#物流模块运行在8082端口
-logistics-module:
-  url: http://localhost:8082
+"logistics-module":
+  url: http://localhost:8090
 oomall:
   core:
     page-size:

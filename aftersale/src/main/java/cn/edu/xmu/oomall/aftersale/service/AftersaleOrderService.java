@@ -97,9 +97,9 @@ public class AftersaleOrderService {
         // 2. 转为 BO
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
         // 3. 校验 (请求中：待审核   处理中：待验收/已生成服务单
-        if  (  (!Objects.equals(bo.getStatus(), AftersaleOrder.UNAUDIT))
-             ||(!Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
-             ||(!Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
+        if  (  !(Objects.equals(bo.getStatus(), AftersaleOrder.UNAUDIT))
+             &&!(Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
+             &&!(Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
         ) {
             log.warn("取消失败: 状态不正确, id={}, currentStatus={}", id, bo.getStatus());
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
