@@ -1,22 +1,22 @@
 package cn.edu.xmu.oomall.aftersale.service.feign;
-
-import cn.edu.xmu.javaee.core.aop.UserLevel;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
-import cn.edu.xmu.javaee.core.model.UserToken;
-import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO; // 引入新的 ResponseDTO
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageCreateDTO;
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "logistics-module", url = "${logistics-module.url}")
+
+@FeignClient(name = "oomall-logistics")
 public interface ExpressClient {
 
-    @PutMapping("/shops/{shopId}/packages/{id}/cancel")
-    InternalReturnObject<PackageResponseDTO> cancelPackage(
+    // 物流的创建物流的InternalController的url感觉有问题???没有用internal
+    @PostMapping("/shops/{shopId}/packages")
+    InternalReturnObject<PackageResponseDTO> createPackage(
             @PathVariable("shopId") Long shopId,
-            @PathVariable("id") Long expressId,
-            @RequestHeader(value = "authorization", required = false)  @cn.edu.xmu.javaee.core.aop.LoginUser UserToken user,
-            @UserLevel Integer userLevel
-
-
+            @RequestBody PackageCreateDTO packageCreateDTO,
+            @RequestHeader("authorization") String token
     );
 }

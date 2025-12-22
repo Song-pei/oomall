@@ -4,7 +4,6 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCreateDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 @FeignClient(name = "service-module", url = "${service-module.url}")

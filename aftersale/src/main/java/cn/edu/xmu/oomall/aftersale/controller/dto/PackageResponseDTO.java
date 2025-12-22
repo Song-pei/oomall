@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PackageResponseDTO {
+
     private Long id;
-    private String expressNo; // 运单号
+
+    // 修改这里：必须叫 billCode，对应物流模块 SimpleExpressVo 的 billCode
+    private String billCode;
 }
