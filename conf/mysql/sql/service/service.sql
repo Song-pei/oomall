@@ -76,6 +76,7 @@ CREATE TABLE `service_service` (
   `product_id` bigint DEFAULT NULL,
   `express_id` bigint DEFAULT NULL,
   `serial_no` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `express_id` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

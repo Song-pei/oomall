@@ -34,4 +34,6 @@ public class ServiceProviderPo {
     private String username;
     private String legalRep;
     private Byte status;
+    private Long regionId;
+
 }
