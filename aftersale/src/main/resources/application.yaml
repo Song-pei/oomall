@@ -37,6 +37,8 @@ server:
 service-module:
   url: http://localhost:8085
 
+"logistics-module":
+  url: http://localhost:8090
 oomall:
   core:
     page-size:

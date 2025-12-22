@@ -33,10 +33,11 @@ public class ServiceCancelAction implements CancelAction {
         ServiceOrderCancelDTO dto = ServiceOrderCancelDTO.builder()
                 .result("顾客取消服务单")
                 .build();
+        //
         String token = null;
         /**
          * 此处需要调用服务模块的查找服务商Id的api,取消服务单需要传入服务商id,但售后表没有
-         *
+         * 也可以不要服务商Id,不按照qm api页面,只传入服务单Id,之后调用服务模块取消
          *
          */
         try {
@@ -50,7 +51,7 @@ public class ServiceCancelAction implements CancelAction {
 
             // 3. 处理结果
             if (ret.getErrno() == 0 ) {
-                log.info("[ServiceCancelAction] 维修服务单取消成功, 服务单号: {}", bo.getServiceOrderId());
+                log.info("[ServiceCancelAction] 服务单取消成功, 服务单号: {}", bo.getServiceOrderId());
             } else {
                 log.error("[ServiceCancelAction] 服务模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());

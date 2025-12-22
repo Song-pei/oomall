@@ -31,7 +31,8 @@ public class ExpressCancelAction implements CancelAction {
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),
                     bo.getId(),//此处应为运单Id
-                    null
+                    null,   //usertoken
+                    0
             );
 
             // 5. 处理结果

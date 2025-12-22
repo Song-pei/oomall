@@ -109,9 +109,10 @@ Content-Type: application/json
     });
 %}
 ### 6.顾客取消售后单-待审核-simple
-DELETE {{host}}/shops/1/aftersales/1
+PUT {{host}}/aftersales/1
 Content-Type: application/json
 
 {
 
 }
+

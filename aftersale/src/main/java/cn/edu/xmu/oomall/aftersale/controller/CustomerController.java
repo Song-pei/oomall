@@ -33,7 +33,7 @@ public class CustomerController {
      * @param user
      * @return
      */
-    @DeleteMapping("aftersales/{id}")
+    @PutMapping("aftersales/{id}")
     public ReturnObject customerCancel(
             @PathVariable Long id,
             UserToken user) {

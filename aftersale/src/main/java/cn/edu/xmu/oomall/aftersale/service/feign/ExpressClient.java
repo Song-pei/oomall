@@ -1,6 +1,8 @@
 package cn.edu.xmu.oomall.aftersale.service.feign;
 
+import cn.edu.xmu.javaee.core.aop.UserLevel;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO; // 引入新的 ResponseDTO
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +14,9 @@ public interface ExpressClient {
     InternalReturnObject<PackageResponseDTO> cancelPackage(
             @PathVariable("shopId") Long shopId,
             @PathVariable("id") Long expressId,
-            @RequestHeader(value = "authorization", required = false) String token
+            @RequestHeader(value = "authorization", required = false)  @cn.edu.xmu.javaee.core.aop.LoginUser UserToken user,
+            @UserLevel Integer userLevel
+
 
     );
 }
