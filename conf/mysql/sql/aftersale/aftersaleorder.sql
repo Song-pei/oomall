@@ -16,9 +16,11 @@ CREATE TABLE aftersale_aftersaleorder(
                                          status INT DEFAULT 0 COMMENT '0已申请 1已同意 2已拒绝',
                                          conclusion VARCHAR(200) COMMENT '审核结论(同意/不同意)',
                                          reason VARCHAR(255) COMMENT '审核拒绝理由',
-
+                                         exception_description VARCHAR(500) COMMENT '异常描述',
     -- 确认这一行被执行了
                                          express_id BIGINT DEFAULT NULL COMMENT '关联的物流单ID',
+                                         refund_id BIGINT DEFAULT NULL COMMENT '关联的退款单ID',
+                                         exchange_express_id BIGINT DEFAULT NULL COMMENT '关联的换货物流单ID',
 
                                          creator_id bigint DEFAULT NULL,
                                          creator_name varchar(128) DEFAULT NULL,

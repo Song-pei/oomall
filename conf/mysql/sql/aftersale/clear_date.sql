@@ -16,7 +16,12 @@ CREATE TABLE aftersale_aftersaleorder(
                                          status INT DEFAULT 0,
                                          conclusion VARCHAR(200),
                                          reason VARCHAR(255),
+                                         exception_description VARCHAR(500),
+
                                          express_id BIGINT DEFAULT NULL, -- 确保这行在
+                                         refund_id BIGINT DEFAULT NULL,
+                                         exchange_express_id BIGINT DEFAULT NULL,
+
                                          creator_id bigint,
                                          creator_name varchar(128),
                                          modifier_id bigint,
@@ -40,4 +45,11 @@ INSERT INTO aftersale_aftersaleorder (
 ) VALUES (
              2, 1, 1001, 5010, '赵三', '13900139000',
              3005, '北京市海淀区某某小区B座101室', 2, 0, NULL, NOW(), NOW()
+         );
+INSERT INTO aftersale_aftersaleorder (
+    id, shop_id, customer_id, order_id, customer_name, customer_mobile,
+    customer_region_id, customer_address, type, status, express_id, gmt_create, gmt_modified
+) VALUES (
+             3, 1, 1001, 5015, '赵三', '13900139000',
+             3005, '北京市海淀区某某小区B座101室', 2, 1, NULL, NOW(), NOW()
          );

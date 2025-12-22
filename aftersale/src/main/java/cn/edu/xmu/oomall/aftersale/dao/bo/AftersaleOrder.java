@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.aftersale.dao.bo;
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
 import cn.edu.xmu.javaee.core.model.OOMallObject;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -36,11 +37,14 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Long orderId;
     private Long serviceOrderId;
     private Long expressId;
+    private Long refundId;
+    private Long exchangeExpressId;
 
     private Integer type; //0换货，1退货, 2维修
     private Integer status;
     private String conclusion;
     private String reason;
+    private String exceptionDescription; //异常描述
 
     private String customerName;
     private String customerMobile;
@@ -220,6 +224,52 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         } else {
             log.warn("尝试取消订单失败，状态流转不允许: id={}, current={}, target={}", this.id, this.status, nextStatus);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
+        }
+    }
+
+     /**
+     * 3. 商户验收售后单
+     * @param exceptionDescription 异常描述
+     * @param confirm 是否通过验收
+     * @param router 传入策略路由工具
+     */
+    public void inspect(String exceptionDescription,boolean confirm, StrategyRouter router) {
+        // 1. 基础状态校验
+        if (!UNCHECK.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");
+        }
+        // ============ 2. 优先处理：验收拒绝 ============
+        if (!confirm) {
+            if (this.allowStatus(CANCEL)) {
+                this.status = CANCEL;
+                this.exceptionDescription = exceptionDescription;
+                return; // 处理完直接结束
+            } else {
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态无法取消");
+            }
+        }
+
+        // ============ 3. 主流程：验收通过 ============
+        // 能走到这里说明 confirm 为 true，无需 else
+        this.exceptionDescription = null;
+
+        // 使用泛型 route 方法获取 InspectAction
+        InspectAction action = router.route(this.type, this.status, "INSPECT", InspectAction.class);
+
+        if (action == null) {
+            log.error("未找到验收策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收策略");
+        }
+
+        // 执行策略并获取目标状态
+        Integer nextStatus = action.execute(this);
+
+        // 结合 allowStatus 校验状态流转是否合法
+        if (nextStatus != null && this.allowStatus(nextStatus)) {
+            this.status = nextStatus;
+        } else {
+            log.error("验收通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "验收后状态流转异常");
         }
     }
 }

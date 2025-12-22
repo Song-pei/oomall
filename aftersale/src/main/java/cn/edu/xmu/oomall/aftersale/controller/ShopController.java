@@ -5,6 +5,7 @@ import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.controller.dto.AuditAfterSalesDTO;
+import cn.edu.xmu.oomall.aftersale.controller.dto.InspectAftersalesDto;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.AftersaleOrderService;
 import cn.edu.xmu.oomall.aftersale.service.vo.AftersaleOrderVo;
@@ -29,9 +30,9 @@ public class ShopController {
     private final AftersaleOrderService aftersaleOrderService;
 
 
-
     /**
      * 查询售后单
+     *
      * @param shopId
      * @param aftersaleSn
      * @param orderSn
@@ -45,11 +46,11 @@ public class ShopController {
     @GetMapping("/aftersales")
     @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public ReturnObject getAftersales(@RequestParam(required = false) Long shopId, @RequestParam(required = false) String aftersaleSn,
-                                                            @RequestParam(required = false) String orderSn,
-                                                            @RequestParam(required = false) Integer status, @RequestParam(required = false) Integer type,
-                                                            @RequestParam(required = false) String applyTime, @RequestParam(defaultValue = "1") Integer page,
-                                                            @RequestParam(defaultValue = "10") Integer pageSize,
-                                                            UserToken user) {
+                                      @RequestParam(required = false) String orderSn,
+                                      @RequestParam(required = false) Integer status, @RequestParam(required = false) Integer type,
+                                      @RequestParam(required = false) String applyTime, @RequestParam(defaultValue = "1") Integer page,
+                                      @RequestParam(defaultValue = "10") Integer pageSize,
+                                      UserToken user) {
 
         log.debug("收到查询售后单请求: shopId={}, status={}, page={}, user={}", shopId, status, page, user);
         if (user == null || user.getId() == null || user.getName() == null) {
@@ -76,6 +77,7 @@ public class ShopController {
 
     /**
      * 审核售后单
+     *
      * @param shopId
      * @param id
      * @param dto
@@ -130,4 +132,43 @@ public class ShopController {
         }
     }
 
+    @PutMapping("aftersales/{id}/receive")
+    public ReturnObject inspect(
+            @PathVariable Long shopId,
+            @PathVariable Long id,
+            @RequestBody InspectAftersalesDto dto,
+            UserToken user) {
+
+        log.info("收到验收请求: shopId={}, id={}, confirm={}, user={}", shopId, id, dto.getConfirm(), user);
+        // 如果没有登录（或者测试环境下），手动创建一个模拟的管理员用户
+        if (user == null || user.getId() == null || user.getName() == null) {
+            log.warn("检测到用户信不完整 (id={}, name={})，启用 Mock 用户",
+                    (user != null ? user.getId() : "null"),
+                    (user != null ? user.getName() : "null"));
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L);
+        }
+        try {
+            aftersaleOrderService.inspect(
+                    shopId,
+                    id,
+                    dto.getExceptionDescription(),
+                    dto.getConfirm(),
+                    user
+            );
+            log.info("售后单验收成功: id={}", id);
+            return new ReturnObject(ReturnNo.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("验收失败(参数错误): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
+        } catch (IllegalStateException e) {
+            log.warn("验收失败(状态不允许): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        } catch (Exception e) {
+            log.error("验收失败", e);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
 }

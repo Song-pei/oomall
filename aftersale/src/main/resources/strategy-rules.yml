@@ -65,3 +65,18 @@ after-sale:
       opt: "CANCEL"
       bean-name: "serviceCancelAction"
       desc: "维修取消服务单"
+
+    # --- 验收流程 (INSPECT) ---
+    # 退货(0) + 待验收(1)
+    - type: 0
+      status: 1
+      opt: "INSPECT"
+      bean-name: "refundInspectAction"
+      desc: "退货验收"
+
+    # 换货(1) + 待验收(1)
+    - type: 1
+      status: 1
+      opt: "INSPECT"
+      bean-name: "expressInspectAction"
+      desc: "换货验收"

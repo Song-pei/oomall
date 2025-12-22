@@ -23,10 +23,14 @@ public class AftersaleOrderPo {
     private Long orderId;
     private Long expressId;
     private Long serviceOrderId;
+    private Long refundId;
+    private Long exchangeExpressId;
+
     private Integer type;
     private Integer status;
     private String conclusion;
     private String reason;
+    private String exceptionDescription;//验收异常描述
 
     private String customerName;
     private String customerMobile;

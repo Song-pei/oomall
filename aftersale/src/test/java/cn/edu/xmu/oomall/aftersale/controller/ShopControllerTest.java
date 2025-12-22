@@ -90,4 +90,17 @@ public class ShopControllerTest {
                 .andExpect(jsonPath("$.errno").value(707)) // AFTERSALE_NOT_LOGIN
                 .andDo(print());
     }
+
+    @Test
+    public void inspectAftersale() throws Exception {
+        String requestBody = "{\"confirm\": false, \"exceptionDescription\": \"无异常\"}";
+
+        mockMvc.perform(put("/shops/1/aftersales/3/receive")
+                        .header("authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errno").value(0))
+                .andDo(print());
+    }
 }

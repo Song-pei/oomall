@@ -120,4 +120,39 @@ public class AftersaleOrderService {
 
         log.info("[Service] 取消完成: boId={}, 新状态={}", id, po.getStatus());
     }
+
+
+    public void inspect(Long shopId ,Long id, String exceptionDescription, boolean confirm, UserToken user) {
+        log.info("开始验收售后单: shopId={}, id={}, confirm={}, user={}", shopId, id, confirm, user);
+
+        // 1. 查出 PO
+        AftersaleOrderPo po = aftersaleOrderDao.findById(id);
+        if (po == null) {
+            log.warn("验收失败: 售后单不存在, id={}", id);
+            throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");
+        }
+
+        // 2. 转为 BO
+        AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+
+        // 3. 校验
+        if (!Objects.equals(bo.getShopId(), shopId)) {
+            log.warn("验收失败: 店铺不匹配, id={}, shopId={}, targetShopId={}", id, bo.getShopId(), shopId);
+            throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, "无权操作该店铺订单");
+        }
+
+        // 4. 执行 BO 业务逻辑
+        bo.inspect(exceptionDescription, confirm, strategyRouter);
+
+        // 5. BO 更新审计信息
+        bo.setModifier(user);
+
+        // 6. 将 BO (包含状态变更和审计信息) 同步回 PO
+        po = CloneFactory.copy(po, bo);
+
+        // 7. 持久化
+        aftersaleOrderDao.update(po);
+
+        log.info("[Service] 验收完成: boId={}, 结果={}", id, confirm);
+    }
 }

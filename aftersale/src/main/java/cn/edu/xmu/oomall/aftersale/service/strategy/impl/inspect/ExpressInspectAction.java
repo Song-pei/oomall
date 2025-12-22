@@ -18,7 +18,7 @@ public class ExpressInspectAction implements InspectAction {
     @Resource
     private ExpressClient expressClient;
     @Override
-    public Integer execute(Long shopId, AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo) {
         log.info("[ExpressInspectAction] 开始执行退换货验收策略 aftersaleId={}", bo.getId());
         try{
             // 1. 构建 DTO
@@ -54,7 +54,8 @@ public class ExpressInspectAction implements InspectAction {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 PackageResponseDTO packageVo = ret.getData();
 
-                //bo.setExpressId(packageVo.getId());
+                bo.setExchangeExpressId(ret.getData().getId());// 设置换货运单ID
+
                 log.info("[ExpressAuditAction] 换货运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
             } else {
                 log.error("[ExpressAuditAction] 物流模块返回错误: {}", ret.getErrmsg());

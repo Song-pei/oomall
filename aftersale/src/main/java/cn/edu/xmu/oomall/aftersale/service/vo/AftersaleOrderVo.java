@@ -19,13 +19,16 @@ public class AftersaleOrderVo {
     private Long customerId;
     private Long orderId;
     private Long serviceOrderId;
+    private Long expressId;
+    private Long refundId;
+    private Long exchangeExpressId;
 
 
     private Integer type;
     private Integer status;
     private String conclusion;
     private String reason;
-
+    private String exceptionDescription;
 
 
 

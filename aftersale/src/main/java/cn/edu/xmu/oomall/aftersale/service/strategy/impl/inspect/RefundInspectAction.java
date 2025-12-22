@@ -25,7 +25,7 @@ public class RefundInspectAction implements InspectAction {
     private PaymentClient paymentClient;
 
     @Override
-    public Integer execute(Long shopId,AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo) {
         log.info("[RefundInspectAction]开始执行退款验收通过逻辑: aftersaleId={}", bo.getId());
 
         try{
@@ -33,7 +33,7 @@ public class RefundInspectAction implements InspectAction {
             String token=null;
             // 调用订单服务，获取支付单id
             InternalReturnObject<OrderResponseDTO> orderRet= orderClient.findOrderById(
-                    shopId,
+                    bo.getShopId(),
                     bo.getOrderId(),
                     token
             );
@@ -51,7 +51,7 @@ public class RefundInspectAction implements InspectAction {
 
             // 调用支付服务，获取支付单
             InternalReturnObject<PayTransVo> payTransRet=paymentClient.findPaymentById(
-                    shopId,
+                    bo.getShopId(),
                     paymentId,
                     token
             );
@@ -69,7 +69,7 @@ public class RefundInspectAction implements InspectAction {
 
             // 调用支付服务，创建退款单
             InternalReturnObject<RefundTransVo> refundTransRet=paymentClient.createRefund(
-                    shopId,
+                    bo.getShopId(),
                     paymentId,
                     refundTransDto,
                     token
@@ -82,7 +82,8 @@ public class RefundInspectAction implements InspectAction {
                 log.error("[RefundInspectAction] 退款单创建失败: paymentId={}", paymentId);
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, refundTransRet.getErrmsg());
             }
-            //bo.setRefundId(refundTransRet.getData().getId());
+
+            bo.setRefundId(refundTransRet.getData().getId());// 设置退款单ID
 
         }catch (BusinessException be){
             throw be;
