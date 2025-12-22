@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.inspect;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageCreateDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
@@ -18,7 +19,7 @@ public class ExpressInspectAction implements InspectAction {
     @Resource
     private ExpressClient expressClient;
     @Override
-    public Integer execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo, UserToken user) {
         log.info("[ExpressInspectAction] 开始执行退换货验收策略 aftersaleId={}", bo.getId());
         try{
             // 1. 构建 DTO
@@ -44,7 +45,7 @@ public class ExpressInspectAction implements InspectAction {
                     .weight(1L)
                     .payMethod(2)
                     .build();
-            String token=null;
+            String token=user.getName();
             // 2. 远程调用
             InternalReturnObject<PackageResponseDTO> ret = expressClient.createPackage(
                     bo.getShopId(),

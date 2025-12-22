@@ -233,7 +233,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
      * @param confirm 是否通过验收
      * @param router 传入策略路由工具
      */
-    public void inspect(String exceptionDescription,boolean confirm, StrategyRouter router) {
+    public void inspect(String exceptionDescription,boolean confirm, StrategyRouter router,UserToken user) {
         // 1. 基础状态校验
         if (!UNCHECK.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");
@@ -262,7 +262,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         }
 
         // 执行策略并获取目标状态
-        Integer nextStatus = action.execute(this);
+        Integer nextStatus = action.execute(this,user);
 
         // 结合 allowStatus 校验状态流转是否合法
         if (nextStatus != null && this.allowStatus(nextStatus)) {

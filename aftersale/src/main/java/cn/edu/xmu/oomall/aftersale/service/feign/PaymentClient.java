@@ -1,4 +1,5 @@
 package cn.edu.xmu.oomall.aftersale.service.feign;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.RefundTransDto;
 import cn.edu.xmu.oomall.aftersale.service.vo.PayTransVo;
 import cn.edu.xmu.oomall.aftersale.service.vo.RefundTransVo;
@@ -11,7 +12,7 @@ public interface PaymentClient {
     InternalReturnObject<PayTransVo> findPaymentById(
             @PathVariable("shopId") Long shopId,
             @PathVariable("id") Long paymentId,
-            @RequestHeader(value = "authorization", required = false) String token
+            @RequestHeader(value = "authorization", required = false) UserToken token
     );
 
     @PutMapping("internal/shops/{shopId}/payments/{id}/refunds")
@@ -19,6 +20,6 @@ public interface PaymentClient {
             @PathVariable("shopId") Long shopId,
             @PathVariable("id") Long paymentId,
             @RequestBody RefundTransDto refundTransDto,
-            @RequestHeader(value = "authorization", required = false) String token
+            @RequestHeader(value = "authorization", required = false) UserToken token
     );
 }

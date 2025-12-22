@@ -3,6 +3,7 @@ package cn.edu.xmu.oomall.aftersale.service.strategy.impl.inspect;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.controller.dto.OrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.RefundTransDto;
@@ -25,17 +26,17 @@ public class RefundInspectAction implements InspectAction {
     private PaymentClient paymentClient;
 
     @Override
-    public Integer execute(AftersaleOrder bo) {
+    public Integer execute(AftersaleOrder bo, UserToken user){
         log.info("[RefundInspectAction]开始执行退款验收通过逻辑: aftersaleId={}", bo.getId());
 
         try{
             // 获取token
-            String token=null;
+            // String token=user.getName();
             // 调用订单服务，获取支付单id
             InternalReturnObject<OrderResponseDTO> orderRet= orderClient.findOrderById(
                     bo.getShopId(),
                     bo.getOrderId(),
-                    token
+                    user
             );
 
             if(orderRet.getErrno()==0 && orderRet.getData()!=null){
@@ -53,7 +54,7 @@ public class RefundInspectAction implements InspectAction {
             InternalReturnObject<PayTransVo> payTransRet=paymentClient.findPaymentById(
                     bo.getShopId(),
                     paymentId,
-                    token
+                    user
             );
 
             if(payTransRet.getErrno()==0&& payTransRet.getData()!=null){
@@ -72,7 +73,7 @@ public class RefundInspectAction implements InspectAction {
                     bo.getShopId(),
                     paymentId,
                     refundTransDto,
-                    token
+                    user
             );
 
             if(refundTransRet.getErrno()==0&& refundTransRet.getData()!=null){

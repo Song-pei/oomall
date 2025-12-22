@@ -142,7 +142,7 @@ public class AftersaleOrderService {
         }
 
         // 4. 执行 BO 业务逻辑
-        bo.inspect(exceptionDescription, confirm, strategyRouter);
+        bo.inspect(exceptionDescription, confirm, strategyRouter, user);
 
         // 5. BO 更新审计信息
         bo.setModifier(user);
