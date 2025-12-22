@@ -37,6 +37,9 @@ server:
 service-module:
   url: http://localhost:8085
 
+#物流模块运行在8082端口
+logistics-module:
+  url: http://localhost:8082
 oomall:
   core:
     page-size:
