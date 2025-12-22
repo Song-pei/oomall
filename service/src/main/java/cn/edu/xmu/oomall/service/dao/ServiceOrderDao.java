@@ -8,7 +8,6 @@ import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -38,5 +37,12 @@ public class ServiceOrderDao {
         this.build(bo);
         return bo;
     }
-
+    public ServiceOrderPo findById(Long id) {
+        return serviceOrderPoMapper.findById(id).orElse(null);
+    }
+    public void save(ServiceOrderPo po)
+    {
+        log.debug("DAO执行更新: id={}, po={}", po.getId(), po);
+        serviceOrderPoMapper.save(po);
+    }
 }

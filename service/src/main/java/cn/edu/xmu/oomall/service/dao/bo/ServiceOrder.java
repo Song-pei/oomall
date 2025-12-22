@@ -8,6 +8,8 @@ import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
+import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
@@ -36,6 +38,7 @@ import static cn.edu.xmu.javaee.core.model.Constants.SYSTEM;
 @Slf4j
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -166,6 +169,33 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         return this.serviceOrderDao.insert(this, user);
     }
 
+    /**
+     * 1. 接受服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void accept(UserToken user, StrategyRouter strategyRouter) {
+        if (!UNACCEPT.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许接受");
+        }
+        //使用泛型route方法获取 AuditAction
+        AcceptAction action = strategyRouter.route(this.type, this.status, "ACCEPT", AcceptAction.class);
+
+        if (action == null) {
+            log.error("未找到接受策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的接受策略");
+        }
+
+        // 3. 执行策略并获取目标状态
+        Byte nextStatus = action.execute(this, user);
+
+        //结合allowStatus校验状态流转是否合法
+        if (nextStatus != null && this.allowStatus(nextStatus)) {
+            this.status = nextStatus;
+        } else {
+            log.error("接受通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "接受后状态流转异常");
+        }
+    }
     public Long getId() {
         return id;
     }
