@@ -29,21 +29,20 @@ public class ExpressCancelAction implements CancelAction {
         try {
 
 
-            // 2. 获取 Token
+            //  获取 Token
             String token = null;
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 token = attributes.getRequest().getHeader("authorization");
             }
-            // 4. 远程调用物流服务
-            // token 传 null (内部调用通常放行，或使用 RequestContextHolder 获取)
+            // 远程调用物流服务
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),
-                    bo.getId(),//此处应为运单Id
+                    bo.getExpressId(),
                     token
             );
 
-            // 5. 处理结果
+            //  处理结果
             if (ret.getErrno() == 0 ) {
                 PackageResponseDTO packageVo = ret.getData();
                 log.info("[ExpressAuditAction] 运单取消成功, ID: {}, 单号: {}", packageVo.getId(),  packageVo.getBillCode());

@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 
-@FeignClient(name = "oomall-logistics",url = "${logistics-module.url}")
+@FeignClient(name = "logistics-modele",url = "${logistics-module.url}")
 public interface ExpressClient {
 
     // 物流的创建物流的InternalController的url感觉有问题???没有用internal
