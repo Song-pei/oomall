@@ -265,6 +265,16 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             this.cancel(user, strategyRouter);
         }
     }
+    /**
+     * 维修师傅退回，维修中 -> 待派工
+     */
+    public void backServiceOrder(UserToken user) {
+        if (!REPAIRING.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许退回待派工");
+        }
+        this.changeStatus(UNASSIGNED, user);
+    }
+
     public Long getId() {
         return id;
     }

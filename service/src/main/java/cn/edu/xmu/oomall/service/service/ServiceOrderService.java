@@ -65,12 +65,19 @@ public class ServiceOrderService {
     /*
      * 取消服务单
      * */
-
     public void cancelServiceOrder(Long id, UserToken user) {
         ServiceOrder serviceOrder = serviceOrderDao.findById(id);
         serviceOrder.cancel(user,strategyRouter);
 
         log.info("[Service] 取消完成: boId={}", id);
     }
-
+    /*
+     * 维修师父退回服务单
+     * */
+    public void backServiceOrder(Long did, long id, String result, UserToken user) {
+        ServiceOrder serviceOrder = serviceOrderDao.findById(id);
+        serviceOrder.setResult(result);
+        serviceOrder.backServiceOrder(user);
+        log.info("[Service] 维修师傅退回待派工完成: boId={}", id);
+    }
 }
