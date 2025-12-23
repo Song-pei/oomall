@@ -7,8 +7,10 @@ import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ServiceOrderService {
     private final StrategyRouter strategyRouter;
     private final ServiceOrderDao serviceOrderDao;
+
     /*
     * 创建服务单
     * */
