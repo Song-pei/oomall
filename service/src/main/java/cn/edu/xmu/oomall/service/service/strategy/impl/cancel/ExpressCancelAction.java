@@ -4,11 +4,13 @@ import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.*;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
+import cn.edu.xmu.oomall.service.dao.ServiceProviderDao;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
@@ -21,15 +23,17 @@ import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
 @Slf4j
 @Component("expressCancelAction")
 public class ExpressCancelAction implements CancelAction {
-
+    @Resource
     private ExpressClient expressClient;
+    @Resource
+    private ServiceProviderDao serviceProviderDao;
     @Override
     public Byte execute(ServiceOrder serviceOrder, UserToken user) {
         log.info("[ExpressCancelAction] 命中创建寄回物品运单策略，boId={}", serviceOrder.getId());
         // TODO:
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
-        ServiceProvider serviceProvider = CloneFactory.copy(new ServiceProvider(),serviceProviderDao.findById(serviceOrder.getMaintainerId()));
+        ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
         dto.getSender().setAddress(serviceProvider.getAddress());

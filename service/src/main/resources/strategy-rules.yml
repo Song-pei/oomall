@@ -7,9 +7,9 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "上门待接受取消"
-    # 上门(0) + 待派工(2) ->SimpleCancelAction
+    # 上门(0) + 待派工(1) ->SimpleCancelAction
     - type: 0
-      status: 2
+      status: 1
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "上门待派工取消"
@@ -31,9 +31,9 @@ ser-vice:
     #请输入文本
     #请输入文本
     #
-    # 寄件(1) + 待派工(2) ->ExpressCancelAction
+    # 寄件(1) + 待派工(1) ->ExpressCancelAction
     - type: 1
-      status: 2
+      status: 1
       opt: "CANCEL"
       bean-name: "expressCancelAction"
       desc: "寄件待派工取消"

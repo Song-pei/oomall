@@ -20,6 +20,7 @@ import cn.edu.xmu.javaee.core.model.ReturnObject;
 public class ExpressAcceptAction implements AcceptAction {
     @Resource
     private ExpressClient expressClient;
+    @Resource
     private ServiceProviderDao serviceProviderDao;
     public Byte execute(ServiceOrder serviceOrder, UserToken user)
     {
@@ -27,13 +28,17 @@ public class ExpressAcceptAction implements AcceptAction {
 
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
-        ServiceProvider serviceProvider = CloneFactory.copy(new ServiceProvider(),serviceProviderDao.findById(serviceOrder.getMaintainerId()));
+        // 使用 dto 实例来创建内部类实例
+        dto.setSender(dto.new ContactsInfo());
+        dto.setDelivery(dto.new ContactsInfo());
+        ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
         dto.getSender().setAddress(serviceProvider.getAddress());
         dto.getSender().setMobile(serviceProvider.getMobile());
         dto.getSender().setName(serviceProvider.getConsignee());
         //收件者信息
+        dto.getDelivery().setRegionId(serviceOrder.getRegionId());
         dto.getDelivery().setAddress(serviceOrder.getAddress());
         dto.getDelivery().setMobile(serviceOrder.getMobile());
         dto.getDelivery().setName(serviceOrder.getConsignee());

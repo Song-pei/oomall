@@ -2,8 +2,10 @@ package cn.edu.xmu.oomall.service.dao;
 
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.mapper.ServiceProviderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceProviderPo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +39,17 @@ public class ServiceProviderDao {
         this.build(bo);
         return bo;
     }
-    public ServiceProviderPo findById(Long id) {
+    public ServiceProviderPo findPoById(Long id) {
         return serviceProviderPoMapper.findById(id).orElse(null);
     }
+    public ServiceProvider findById(Long id) {
+        log.debug("findById: id = {}", id);
 
+        ServiceProviderPo po = this.findPoById(id);
+
+        ServiceProvider bo = CloneFactory.copy(new ServiceProvider(), po);
+        log.debug("findById: retrieve from database serviceOrder = {}", bo);
+        this.build(bo);
+        return bo;
+    }
 }

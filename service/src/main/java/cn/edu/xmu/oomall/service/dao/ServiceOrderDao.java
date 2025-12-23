@@ -59,7 +59,7 @@ public class ServiceOrderDao {
         ServiceOrderPo oldPo = this.findPoById(bo.getId());
         bo.setModifier(user);
         bo.setGmtModified(LocalDateTime.now());
-        ServiceOrderPo po = CloneFactory.copyNotNull(oldPo, bo);
+        ServiceOrderPo po = CloneFactory.copy(oldPo, bo);
         log.debug("save: po = {}", po);
         this.serviceOrderPoMapper.save(po);
     }

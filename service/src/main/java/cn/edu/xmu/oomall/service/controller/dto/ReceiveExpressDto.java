@@ -7,7 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+/*
+* 验收包裹使用的DTO
+* */
 
 @Data
 public class ReceiveExpressDto {

@@ -107,7 +107,7 @@ public class ServiceOrderController {
      * @param user    登录用户
      * @return  服务单数据
      */
-    @PostMapping("/maintainers/{did}/services/{id}/receive")
+    @PostMapping("/receive")
     public ReturnObject receiveExpress(
             @PathVariable("did") Long did,
 
@@ -151,7 +151,7 @@ public class ServiceOrderController {
      * @param user    登录用户
      * @return
      */
-    @PostMapping("/services/{id}/cancel")
+    @PostMapping("/cancel")
     public ReturnObject cancelServiceOrder(
             @PathVariable("id") Long id,
             UserToken user

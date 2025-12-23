@@ -262,7 +262,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             this.changeStatus(UNASSIGNED, user);
         else {
             this.status = UNASSIGNED;
-            this.cancel(result, user, strategyRouter);
+            this.cancel(user, strategyRouter);
         }
     }
     public Long getId() {
