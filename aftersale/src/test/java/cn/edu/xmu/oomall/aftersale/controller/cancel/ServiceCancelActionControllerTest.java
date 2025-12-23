@@ -6,6 +6,7 @@ import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.AftersaleApplication;
+import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceFind;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
@@ -68,6 +69,7 @@ public class ServiceCancelActionControllerTest {
     private ServiceOrderClient serviceOrderClient;
 
     private Long targetId;
+    private static final Long MAINTAINER_ID = 9999L; // 模拟的服务商ID
 
     @BeforeEach
     public void setup() {
@@ -96,7 +98,17 @@ public class ServiceCancelActionControllerTest {
      */
     @Test
     public void cancelAftersale_ServiceCancel_Success() throws Exception {
-        // 1. 构造远程返回对象
+        // 构造获取服务商ID的远程返回对象
+        ServiceFind serviceFind = new ServiceFind();
+        ServiceFind.Maintainer maintainer;
+        maintainer = serviceFind.new Maintainer();
+        maintainer.setId(MAINTAINER_ID);
+        serviceFind.setMaintainer(maintainer);
+        InternalReturnObject<ServiceFind> findRet = new InternalReturnObject<>();
+        findRet.setErrno(0);
+        findRet.setErrmsg("成功");
+        findRet.setData(serviceFind);
+        //  构造取消服务单的远程返回对象
         ServiceOrderResponseDTO mockResp = new ServiceOrderResponseDTO();
         mockResp.setId(8888L);
         InternalReturnObject<ServiceOrderResponseDTO> successRet = new InternalReturnObject<>();
@@ -104,8 +116,15 @@ public class ServiceCancelActionControllerTest {
         successRet.setErrmsg("成功");
         successRet.setData(mockResp);
 
-        Mockito.when(serviceOrderClient.customerCancelServiceOrder(
+        // 3. 打桩远程调用
+        Mockito.when(serviceOrderClient.getServiceOrder(
+                eq(1L),           // shopId
+                eq(8888L),        // serviceOrderId
+                anyString()       // token
+        )).thenReturn(findRet);
 
+        Mockito.when(serviceOrderClient.customerCancelServiceOrder(
+                eq(MAINTAINER_ID),
                 eq(8888L),        // serviceOrderId
                 anyString(),      // token
                 any(ServiceOrderCancelDTO.class)
@@ -126,21 +145,64 @@ public class ServiceCancelActionControllerTest {
     }
 
     /**
-     * 场景2：远程取消失败 -> 整体失败，状态不变
+     *  场景2：获取服务商ID失败 -> 整体失败
      */
     @Test
-    public void cancelAftersale_ServiceCancel_RemoteFail() throws Exception {
-        // 1. 构造失败返回
+    public void cancelAftersale_ServiceCancel_RemoteFail1() throws Exception {
+
+        // 1. 构造获取服务商ID失败的返回
+        InternalReturnObject<ServiceFind> findRet = new InternalReturnObject<>();
+        findRet.setErrno(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo());
+        findRet.setErrmsg("获取服务单信息失败");
+       // 2. 打桩远程调用
+        Mockito.when(serviceOrderClient.getServiceOrder(
+                eq(1L),
+                eq(8888L),
+                anyString()
+        )).thenReturn(findRet);
+        // 3. 发请求
+        mockMvc.perform(
+                        put("/aftersales/{id}", targetId)
+                                .header("authorization", "Bearer test-token")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errno").value(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()))
+                .andDo(print());
+        // 4. 验数据库（状态应保持原样）
+        AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
+        assertEquals(AftersaleOrder.GENERATE_SERVICEORDER.byteValue(), updatedPo.getStatus());
+
+    }
+    /**
+     * 场景3：远程取消服务单失败 -> 整体失败，状态不变
+     */
+    @Test
+    public void cancelAftersale_ServiceCancel_RemoteFail2() throws Exception {
+        // 构造获取服务商ID的远程返回对象
+        ServiceFind serviceFind = new ServiceFind();
+        ServiceFind.Maintainer maintainer;
+        maintainer = serviceFind.new Maintainer();
+        maintainer.setId(MAINTAINER_ID);
+        serviceFind.setMaintainer(maintainer);
+        InternalReturnObject<ServiceFind> findRet = new InternalReturnObject<>();
+        findRet.setErrno(0);
+        findRet.setErrmsg("成功");
+        findRet.setData(serviceFind);
+
+        // 2. 构造取消服务单失败的返回
         InternalReturnObject<ServiceOrderResponseDTO> failRet = new InternalReturnObject<>();
         failRet.setErrno(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo());
         failRet.setErrmsg("服务系统取消失败");
 
-        // 2. 打桩
+
+        //  打桩
         Mockito.when(serviceOrderClient.customerCancelServiceOrder(
+                eq(MAINTAINER_ID),
                 eq(8888L),
                 anyString(),
                 any(ServiceOrderCancelDTO.class)
         )).thenReturn(failRet);
+
 
         // 3. 发请求
         mockMvc.perform(
@@ -151,8 +213,10 @@ public class ServiceCancelActionControllerTest {
                 .andExpect(jsonPath("$.errno").value(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()))
                 .andDo(print());
 
+
         // 4. 验数据库（状态应保持原样）
         AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
         assertEquals(AftersaleOrder.GENERATE_SERVICEORDER.byteValue(), updatedPo.getStatus());
     }
+
 }

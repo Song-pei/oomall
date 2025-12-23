@@ -34,7 +34,7 @@ public class CustomerController {
      * @param user
      * @return
      */
-    @PutMapping("aftersales/{id}")
+    @PutMapping("/aftersales/{id}")
     public ReturnObject customerCancel(
             @PathVariable Long id,
             UserToken user) {
