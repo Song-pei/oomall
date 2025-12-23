@@ -3,7 +3,6 @@ package cn.edu.xmu.oomall.aftersale.controller.cancel;
 
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
-import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.CustomerController;
 import cn.edu.xmu.oomall.aftersale.service.AftersaleOrderService;

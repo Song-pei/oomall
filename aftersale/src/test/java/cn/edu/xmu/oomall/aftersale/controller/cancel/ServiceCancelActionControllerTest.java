@@ -3,7 +3,6 @@ package cn.edu.xmu.oomall.aftersale.controller.cancel;
 import cn.edu.xmu.javaee.core.mapper.RedisUtil;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
-import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.AftersaleApplication;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceFind;

@@ -9,14 +9,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class SimpleCancelActionControllerTest {
     @InjectMocks
     private SimpleCancelAction simpleCancelAction;
 
+    /**
+     * 测试 待审核状态下的取消
+     */
     @Test
     public void testExecute() {
         // 1. 模拟依赖
