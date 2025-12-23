@@ -57,3 +57,17 @@ ser-vice:
       opt: "FINISH"
       bean-name: "expressFinishAction"
       desc: "寄件维修完成"
+
+    # 接受服务单
+    # 上门(0) + 待接受(0) -> SimpleAcceptAction
+    - type: 0
+      status: 0
+      opt: "ACCEPT"
+      bean-name: "simpleAcceptAction"
+      desc: "上门维修接受"
+    # 寄件(1) + 待接受(0) -> ExpressAcceptAction
+    - type: 1
+      status: 0
+      opt: "ACCEPT"
+      bean-name: "expressAcceptAction"
+      desc: "寄件维修接受"
