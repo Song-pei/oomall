@@ -4,6 +4,7 @@ import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceFind;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
@@ -12,8 +13,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import cn.edu.xmu.oomall.aftersale.service.feign.ServiceOrderClient;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * 服务单取消策略
@@ -33,43 +32,68 @@ public class ServiceCancelAction implements CancelAction {
             throw new IllegalStateException("未找到关联服务单，无法取消");
         }
 
+
+
+        // 获取 Token
+        String token = user.getName();
+        Long maintainId=null;
+        /**
+         * 此处需要调用服务模块的查找服务商Id的api,取消服务单需要传入服务商id,但售后表没有
+         */
+        try {
+            // 远程调用
+            InternalReturnObject<ServiceFind> ret = serviceOrderClient.getServiceOrder(
+                    bo.getShopId(),
+                    bo.getServiceOrderId(),
+                    token
+            );
+
+            // 处理结果
+            if (ret.getErrno() == 0) {
+                maintainId=ret.getData().getMaintainer().getId();
+                log.info("[ServiceCancelAction] 调取服务Find服务商, 服务单号: {}", bo.getServiceOrderId());
+            } else {
+                log.error("[ServiceCancelAction] 调取服务模块Find错误: {}", ret.getErrmsg());
+                throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
+            }
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            log.error("[ServiceCancelAction] 远程调用Find异常, boId={}", bo.getId(), e);
+            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL); }
+
         //  组装参数
         ServiceOrderCancelDTO dto = ServiceOrderCancelDTO.builder()
                 .result("顾客取消服务单")
                 .build();
-        // 获取 Token
-        String token = user.getName();
-           /* ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attributes != null) {
-                token = attributes.getRequest().getHeader("authorization");
-            }*/
-        /**
-         * 此处需要调用服务模块的查找服务商Id的api,取消服务单需要传入服务商id,但售后表没有
-         * 也可以不要服务商Id,不按照qm api页面,只传入服务单Id,之后调用服务模块取消
-         * 目前把服务商id去掉
-         */
+
         try {
             // 远程调用
             InternalReturnObject<ServiceOrderResponseDTO> ret = serviceOrderClient.customerCancelServiceOrder(
+                    maintainId,//服务商id,需要先查
                     bo.getServiceOrderId(),
                     token,
                     dto
             );
 
             // 处理结果
-            if (ret.getErrno() == 0 ) {
+            if (ret.getErrno() == 0) {
                 log.info("[ServiceCancelAction] 服务单取消成功, 服务单号: {}", bo.getServiceOrderId());
             } else {
-                log.error("[ServiceCancelAction] 服务模块返回错误: {}", ret.getErrmsg());
+                log.error("[ServiceCancelAction] 服务模块取消错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
         } catch (BusinessException be) {
             throw be;
-        } catch (Exception e) {
-            log.error("[ServiceCancelAction] 远程调用异常, boId={}", bo.getId(), e);
+        } catch (Exception e2) {
+            log.error("[ServiceCancelAction] 远程调用取消异常, boId={}", bo.getId(), e2);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
+
+
+
         return AftersaleOrder.CANCEL;
     }
+
 }
