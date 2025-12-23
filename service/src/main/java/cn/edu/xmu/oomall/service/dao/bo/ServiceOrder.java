@@ -9,6 +9,7 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
+import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
 import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
 import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -61,9 +62,9 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     private String maintainerMobile;
     private String maintainerName;
 
-    private Long expressId;
     private Long productId;
     private String serialNo;
+    private Long expressId;
     @JsonIgnore
     @Setter
     private ServiceOrderDao serviceOrderDao;
@@ -193,6 +194,35 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         }
         this.changeStatus(nextStatus, user);
     }
+
+    /**
+     * 2. 取消服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void cancel(UserToken user,StrategyRouter strategyRouter) {
+        // 已完成或已取消不允许再次取消
+        if (FINISH.equals(this.status) || CANCEL.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
+        }
+
+        // 通过策略路由找到具体的取消策略
+        CancelAction action = strategyRouter.route(this.type, this.status, "CANCEL", CancelAction.class);
+        if (action == null) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的取消策略");
+        }
+
+        // 执行策略获取目标状态
+        Byte nextStatus = action.execute(this,user);
+
+        // 校验状态流转合法性
+        if (!CANCEL.equals(nextStatus)) {
+            log.error("取消后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "取消后状态流转异常");
+        }
+        this.changeStatus(nextStatus, user);
+    }
+
+
 
     /**
      * 3. 完成服务单

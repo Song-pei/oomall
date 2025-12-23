@@ -34,7 +34,6 @@ public class ExpressAcceptAction implements AcceptAction {
         dto.getSender().setMobile(serviceProvider.getMobile());
         dto.getSender().setName(serviceProvider.getConsignee());
         //收件者信息
-        dto.getDelivery().setRegionId(serviceOrder.getRegionId());
         dto.getDelivery().setAddress(serviceOrder.getAddress());
         dto.getDelivery().setMobile(serviceOrder.getMobile());
         dto.getDelivery().setName(serviceOrder.getConsignee());

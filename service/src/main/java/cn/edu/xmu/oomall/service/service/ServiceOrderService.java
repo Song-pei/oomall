@@ -54,5 +54,15 @@ public class ServiceOrderService {
         serviceOrder.finish(result, user, strategyRouter);
         log.info("[Service] 完成: boId={}", id);
     }
+    /*
+     * 取消服务单
+     * */
+
+    public void cancelServiceOrder(Long id, UserToken user) {
+        ServiceOrder serviceOrder = serviceOrderDao.findById(id);
+        serviceOrder.cancel(user,strategyRouter);
+
+        log.info("[Service] 取消完成: boId={}", id);
+    }
 
 }

@@ -99,7 +99,7 @@ public class ServiceOrderController {
     }
 
     /**
-     * 接受服务单
+     * 接受运单
      *
      * @param did    服务商id
      * @param id       服务单id
@@ -122,30 +122,62 @@ public class ServiceOrderController {
             user.setDepartId(0L);
         }
 
-        if(receiveExpressDto.getAccepted())
-        {
-            try {
-                serviceOrderService.receiveExpress(
-                        did,
-                        id,
-                        user,
-                        receiveExpressDto.getResult()
-                );
-                log.info("运单验收成功: id={}", id);
-                return new ReturnObject(ReturnNo.OK);
-            } catch (IllegalArgumentException e) {
-                log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-            } catch (IllegalStateException e) {
-                log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.STATENOTALLOW);
-            } catch (Exception e) {
-                log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
-                return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
-            }
+        try {
+            serviceOrderService.receiveExpress(
+                    did,
+                    id,
+                    receiveExpressDto.getResult(),
+                    receiveExpressDto.getAccepted(),
+                    user
+            );
+            log.info("运单验收成功: id={}", id);
+            return new ReturnObject(ReturnNo.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
+        } catch (IllegalStateException e) {
+            log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        } catch (Exception e) {
+            log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        ServiceOrderCancleDto dto= new ServiceOrderCancleDto();
-        dto.setResult();
-        return cancleServiceOrder(did,id,user,receiveExpressDto.getResult());
+
+    }
+
+    /**
+     * 取消服务单
+     *
+     * @param id       服务单id
+     * @param user    登录用户
+     * @return
+     */
+    @PostMapping("/services/{id}/cancel")
+    public ReturnObject cancelServiceOrder(
+            @PathVariable("id") Long id,
+            UserToken user
+    ) {
+        if (user == null || user.getId() == null) {
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L);
         }
+        try {
+            serviceOrderService.cancelServiceOrder(id, user);
+            log.info("服务单取消成功: id={}", id);
+            return new ReturnObject(ReturnNo.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("服务单取消失败(参数错误): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        } catch (IllegalStateException e) {
+            log.warn("服务单取消失败(状态不允许): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        } catch (Exception e) {
+            log.error("服务单取消失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
+
 }
