@@ -251,8 +251,20 @@ public class ServiceOrder extends OOMallObject implements Serializable {
 
         this.changeStatus(nextStatus, user);
     }
-
-
+    /**
+     * 4. 验收包裹
+     */
+    public void receiveExpress(String result, boolean accepted,UserToken user,StrategyRouter strategyRouter){
+        if (!UNCHECK.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许完成服务单");
+        }
+        if(accepted)
+            this.changeStatus(UNASSIGNED, user);
+        else {
+            this.status = UNASSIGNED;
+            this.cancel(result, user, strategyRouter);
+        }
+    }
     public Long getId() {
         return id;
     }

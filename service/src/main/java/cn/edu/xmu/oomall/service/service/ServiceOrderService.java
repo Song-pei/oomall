@@ -54,6 +54,11 @@ public class ServiceOrderService {
         serviceOrder.finish(result, user, strategyRouter);
         log.info("[Service] 完成: boId={}", id);
     }
+    public void receiveExpress(Long did,long id,String result, boolean accepted,UserToken user){
+        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);
+        serviceOrder.receiveExpress(result,accepted,user,strategyRouter);
+        log.info("[Service] 完成: boId={}", id);
+    }
     /*
      * 取消服务单
      * */
