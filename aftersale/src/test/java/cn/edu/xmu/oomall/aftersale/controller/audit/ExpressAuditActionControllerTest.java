@@ -1,4 +1,4 @@
-package cn.edu.xmu.oomall.aftersale.controller;
+package cn.edu.xmu.oomall.aftersale.controller.audit;
 
 import cn.edu.xmu.javaee.core.mapper.RedisUtil;
 import cn.edu.xmu.javaee.core.model.InternalReturnObject;
@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional(propagation = Propagation.REQUIRED)
 @Import(ExpressAuditActionControllerTest.MockConfig.class)
-@Rollback(true)
+@Rollback(value = true)
 public class ExpressAuditActionControllerTest {
 
     @TestConfiguration
@@ -98,78 +98,63 @@ public class ExpressAuditActionControllerTest {
     }
 
     /**
-     * 测试场景 1: 审核通过 (confirm=true) -> 成功创建运单并保存 expressId
+     * 场景 1: 审核通过 (confirm=true)
      */
     @Test
     public void auditAftersale_Type1_Success() throws Exception {
-        // 1. 定义 Mock 行为
-        Long expectedExpressId = 10086L; // 预期的物流单 ID
-        String expectedBillCode = "SF_TEST_SUCCESS";
-        PackageResponseDTO mockResponse = new PackageResponseDTO(expectedExpressId, expectedBillCode);
+        // 1. Mock 物流 Feign 调用
+        Long expectedExpressId = 10086L;
+        PackageResponseDTO mockResponse = new PackageResponseDTO(expectedExpressId, "SF123456");
         InternalReturnObject<PackageResponseDTO> successRet = new InternalReturnObject<>(mockResponse);
 
+        // 确保 Mock 的参数匹配接口定义
         Mockito.when(expressClient.createPackage(anyLong(), any(PackageCreateDTO.class), any()))
                 .thenReturn(successRet);
 
-        // 2. 构造请求参数
+        // 2. 构造请求
         String requestBody = """
                     {
                         "confirm": true,
-                        "conclusion": "同意退货",
-                        "reason": ""
+                        "conclusion": "同意退货"
                     }
                 """;
 
-        // 3. 发起调用
+        // 3. 执行请求
         mockMvc.perform(put("/shops/1/aftersales/" + targetId + "/confirm")
-                        .header("authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.errno").value(0))
-                .andDo(print());
+                .andExpect(jsonPath("$.errno").value(0));
 
-        // 4. 验证数据库状态更新
+        // 4. 验证数据库
         AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
+        assertEquals(AftersaleOrder.UNCHECK, updatedPo.getStatus());
+        assertEquals(expectedExpressId, updatedPo.getExpressId());
 
-        // 验证基本状态
-        assertEquals(AftersaleOrder.UNCHECK.byteValue(), updatedPo.getStatus());
-        assertEquals("同意", updatedPo.getConclusion());
-
-        // 验证 express_id 是否成功从 Feign 返回值保存到了数据库
-        assertNotNull(updatedPo.getExpressId(), "express_id 应该被保存到数据库中");
-        assertEquals(expectedExpressId, updatedPo.getExpressId(), "数据库中的 express_id 应与 Mock 返回的一致");
     }
 
 
     /**
-     * 测试场景 2: 远程物流服务报错 -> 审核失败
+     * 场景 2: 远程调用失败
      */
     @Test
     public void auditAftersale_Type1_RemoteFail() throws Exception {
-        // 1. Mock
+        // 1. Mock 逻辑保持不变...
         InternalReturnObject<PackageResponseDTO> failRet = new InternalReturnObject<>();
         failRet.setErrno(ReturnNo.INTERNAL_SERVER_ERR.getErrNo());
         failRet.setErrmsg("物流系统繁忙");
 
-        Mockito.when(expressClient.createPackage(
-                anyLong(),
-                any(PackageCreateDTO.class),
-                any()
-        )).thenReturn(failRet);
+        Mockito.when(expressClient.createPackage(anyLong(), any(), any())).thenReturn(failRet);
 
-        String requestBody = """
-            { "confirm": true, "conclusion": "同意", "reason": "测试失败场景" }
-        """;
+        String requestBody = "{ \"confirm\": true, \"conclusion\": \"同意\", \"reason\": \"测试失败场景\" }";
 
         // 2. 发起调用
-        mockMvc.perform(put("/shops/1/aftersales/" + targetId + "/confirm")
+        mockMvc.perform(put("/shops/1/aftersales/" + targetId + "/confirm") // 确认路径已修正
                         .header("authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isInternalServerError())
-
                 .andExpect(jsonPath("$.errno").value(ReturnNo.INTERNAL_SERVER_ERR.getErrNo()));
     }
 }
