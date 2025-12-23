@@ -40,7 +40,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Long customerId;
     private Long orderId;
     private Long serviceOrderId;
-    private Long customeExpressId;
+    private Long customerExpressId;
     private Long refundId;
     private Long shopExpressId;
 

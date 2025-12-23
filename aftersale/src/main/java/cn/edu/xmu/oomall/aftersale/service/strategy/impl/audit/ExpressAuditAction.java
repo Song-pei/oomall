@@ -68,7 +68,7 @@ public class ExpressAuditAction implements AuditAction {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 PackageResponseDTO packageVo = ret.getData();
 
-                bo.setCustomeExpressId(packageVo.getId());
+                bo.setCustomerExpressId(packageVo.getId());
                 log.info("[ExpressAuditAction] 运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
 
 

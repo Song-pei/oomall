@@ -19,9 +19,9 @@ public class AftersaleOrderVo {
     private Long customerId;
     private Long orderId;
     private Long serviceOrderId;
-    private Long expressId;
+    private Long customerExpressId;
     private Long refundId;
-    private Long exchangeExpressId;
+    private Long shopExpressId;
 
 
     private Integer type;
