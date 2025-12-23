@@ -74,7 +74,7 @@ public class CustomerController {
             throw be;
         } catch (IllegalArgumentException | IllegalStateException e) {
             log.warn("取消失败(业务校验): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID, e.getMessage());
+            return new ReturnObject(RESOURCE_ID_NOTEXIST, e.getMessage());
         }
     }
 }

@@ -188,20 +188,24 @@ public class ServiceCancelActionControllerTest {
         findRet.setErrmsg("成功");
         findRet.setData(serviceFind);
 
-        // 2. 构造取消服务单失败的返回
+        // 构造取消服务单失败的返回
         InternalReturnObject<ServiceOrderResponseDTO> failRet = new InternalReturnObject<>();
-        failRet.setErrno(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo());
+        failRet.setErrno(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()); // 设置非0错误码
         failRet.setErrmsg("服务系统取消失败");
 
+        // 打桩远程调用，模拟远程服务调用失败
+        Mockito.when(serviceOrderClient.getServiceOrder(
+                eq(1L),           // shopId
+                eq(8888L),        // serviceOrderId
+                anyString()       // token
+        )).thenReturn(findRet);
 
-        //  打桩
         Mockito.when(serviceOrderClient.customerCancelServiceOrder(
                 eq(MAINTAINER_ID),
-                eq(8888L),
-                anyString(),
+                eq(8888L),        // serviceOrderId
+                anyString(),      // token
                 any(ServiceOrderCancelDTO.class)
         )).thenReturn(failRet);
-
 
         // 3. 发请求
         mockMvc.perform(
@@ -214,6 +218,49 @@ public class ServiceCancelActionControllerTest {
 
 
         // 4. 验数据库（状态应保持原样）
+        AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
+        assertEquals(AftersaleOrder.GENERATE_SERVICEORDER.byteValue(), updatedPo.getStatus());
+    }
+
+    /**
+     * 场景4：售后单中没有服务单号ID -> 整体失败，抛出异常
+     */
+    @Test
+    public void cancelAftersale_NoServiceOrderId() throws Exception {
+        // 构造没有服务单号的售后单状态
+        AftersaleOrderPo po = aftersaleOrderDao.findById(targetId);
+        AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        bo.setType(2);                                    // 维修
+        bo.setStatus(AftersaleOrder.GENERATE_SERVICEORDER); // 已生成服务单
+        bo.setShopId(1L);                                 // 与 URI 中的 shopId 保持一致
+        bo.setCustomerId(1001L);
+        bo.setCustomerName("维修用户赵六");
+        bo.setCustomerMobile("13966668888");
+        bo.setServiceOrderId(null);                       // 设置服务单号为 null
+
+        AftersaleOrderPo toSavePo = CloneFactory.copy(po, bo);
+        aftersaleOrderDao.update(toSavePo);
+        // 打桩远程调用，模拟服务模块的返回
+        InternalReturnObject<ServiceFind> findRet = new InternalReturnObject<>();
+        findRet.setErrno(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo());
+        findRet.setErrmsg("获取服务单信息失败");
+
+        Mockito.when(serviceOrderClient.getServiceOrder(
+                eq(1L),
+                eq(8888L), // 这里使用了一个假设的服务单号，因为实际的服务单号是 null
+                anyString()
+        )).thenReturn(findRet);
+
+        // 发请求
+        mockMvc.perform(
+                        put("/aftersales/{id}", targetId)
+                                .header("authorization", "Bearer test-token")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errno").value(ReturnNo.RESOURCE_ID_NOTEXIST.getErrNo())) // 假设没有服务单号时返回的errno
+                .andDo(print());
+
+        // 验数据库（状态应保持原样）
         AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
         assertEquals(AftersaleOrder.GENERATE_SERVICEORDER.byteValue(), updatedPo.getStatus());
     }

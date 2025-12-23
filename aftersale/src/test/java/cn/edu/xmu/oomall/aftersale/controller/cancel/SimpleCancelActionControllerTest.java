@@ -15,13 +15,13 @@ public class SimpleCancelActionControllerTest {
     private SimpleCancelAction simpleCancelAction;
 
     /**
-     * 测试 待审核状态下的取消
+     *  待审核状态下的取消
      */
     @Test
     public void testExecute() {
         // 1. 模拟依赖
         AftersaleOrder mockAftersaleOrder = Mockito.mock(AftersaleOrder.class);
-        // 预设 getId 的返回值（避免 NPE）
+
         Mockito.when(mockAftersaleOrder.getId()).thenReturn(123L);
 
         SimpleCancelAction action = new SimpleCancelAction();

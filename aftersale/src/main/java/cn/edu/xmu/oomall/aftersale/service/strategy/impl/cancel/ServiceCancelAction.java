@@ -58,9 +58,7 @@ public class ServiceCancelAction implements CancelAction {
             }
         } catch (BusinessException be) {
             throw be;
-        } catch (Exception e) {
-            log.error("[ServiceCancelAction] 远程调用Find异常, boId={}", bo.getId(), e);
-            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL); }
+        }
 
         //  组装参数
         ServiceOrderCancelDTO dto = ServiceOrderCancelDTO.builder()
@@ -84,8 +82,6 @@ public class ServiceCancelAction implements CancelAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
-        } catch (BusinessException be) {
-            throw be;
         } catch (Exception e2) {
             log.error("[ServiceCancelAction] 远程调用取消异常, boId={}", bo.getId(), e2);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
