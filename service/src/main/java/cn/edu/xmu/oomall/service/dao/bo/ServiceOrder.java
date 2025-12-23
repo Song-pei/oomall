@@ -208,7 +208,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         // 通过策略路由找到具体的取消策略
         CancelAction action = strategyRouter.route(this.type, this.status, "CANCEL", CancelAction.class);
         if (action == null) {
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的取消策略");
+            throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的取消策略");
         }
 
         // 执行策略获取目标状态
