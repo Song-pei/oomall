@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.aftersale.controller;
 
+import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
@@ -53,18 +54,27 @@ public class CustomerController {
 
 
         try {
+
             aftersaleOrderService.customerCancel(id, user);
             log.info("售后单取消成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
-        } catch (IllegalArgumentException e) {
-            log.warn("取消失败(参数错误): id={}, error={}", id, e.getMessage());
+
+        } catch (BusinessException be) {
+            // 资源不存在
+            if (be.getErrno() == ReturnNo.RESOURCE_ID_NOTEXIST) {
+                log.warn("取消失败(资源不存在): id={}", id);
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            // 状态不允许
+            if (be.getErrno()== ReturnNo.STATENOTALLOW) {
+                log.warn("取消失败(状态不允许): id={}", id);
+                return new ReturnObject(ReturnNo.STATENOTALLOW);
+            }
+            // 其余 BusinessException（远程失败等）继续抛出 -> HTTP 500
+            throw be;
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("取消失败(业务校验): id={}, error={}", id, e.getMessage());
             return new ReturnObject(ReturnNo.FIELD_NOTVALID, e.getMessage());
-        } catch (IllegalStateException e) {
-            log.warn("取消失败(状态不允许): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.STATENOTALLOW, e.getMessage());
-        } catch (Exception e) {
-            log.error("取消售后单异常: id={}", id, e);
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
 }

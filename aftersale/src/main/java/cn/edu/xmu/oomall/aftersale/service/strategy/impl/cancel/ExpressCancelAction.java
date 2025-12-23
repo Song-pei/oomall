@@ -53,9 +53,7 @@ public class ExpressCancelAction implements CancelAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception e) {
+        }  catch (Exception e) {
             log.error("[ExpressCancelAction] 远程调用异常, bo.Id={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "取消运单失败");
         }
