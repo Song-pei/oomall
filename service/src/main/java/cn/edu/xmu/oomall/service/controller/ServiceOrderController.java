@@ -122,30 +122,26 @@ public class ServiceOrderController {
             user.setDepartId(0L);
         }
 
-        if(receiveExpressDto.getAccepted())
-        {
-            try {
-                serviceOrderService.receiveExpress(
-                        did,
-                        id,
-                        user,
-                        receiveExpressDto.getResult()
-                );
-                log.info("运单验收成功: id={}", id);
-                return new ReturnObject(ReturnNo.OK);
-            } catch (IllegalArgumentException e) {
-                log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-            } catch (IllegalStateException e) {
-                log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.STATENOTALLOW);
-            } catch (Exception e) {
-                log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
-                return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
-            }
+        try {
+            serviceOrderService.receiveExpress(
+                    did,
+                    id,
+                    receiveExpressDto.getResult(),
+                    receiveExpressDto.getAccepted(),
+                    user
+            );
+            log.info("运单验收成功: id={}", id);
+            return new ReturnObject(ReturnNo.OK);
+        } catch (IllegalArgumentException e) {
+            log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
+        } catch (IllegalStateException e) {
+            log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
+            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        } catch (Exception e) {
+            log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        ServiceOrderCancleDto dto= new ServiceOrderCancleDto();
-        dto.setResult();
-        return cancleServiceOrder(did,id,user,receiveExpressDto.getResult());
-        }
+
+    }
 }
