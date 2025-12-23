@@ -5,5 +5,5 @@ package cn.edu.xmu.oomall.service.service.strategy.config;
  * 用于 Map 的 Key，必须重写 equals 和 hashCode
  * Java 21 record 自动完成了这些工作
  */
-public record StrategyKey(Integer type, Integer status, String opt) {
+public record StrategyKey(Byte type, Byte status, String opt) {
 }

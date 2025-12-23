@@ -1,4 +1,4 @@
-package cn.edu.xmu.oomall.service.service.strategy.impl.cancel;
+package cn.edu.xmu.oomall.service.service.strategy.impl.accept;
 
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.*;
@@ -9,30 +9,28 @@ import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
-
+import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
+import cn.edu.xmu.javaee.core.model.ReturnObject;
 
-
-/**
- * 退货换货取消策略
- * 场景：此时商品处于“维修中”状态，因为某种原因需要寄回给客户。
- */
 @Slf4j
-@Component("expressCancelAction")
-public class ExpressCancelAction implements CancelAction {
+@Component("expressAcceptAction")
+public class ExpressAcceptAction implements AcceptAction {
     @Resource
     private ExpressClient expressClient;
     @Resource
     private ServiceProviderDao serviceProviderDao;
-    @Override
-    public Byte execute(ServiceOrder serviceOrder, UserToken user) {
-        log.info("[ExpressCancelAction] 命中创建寄回物品运单策略，boId={}", serviceOrder.getId());
-        // TODO:
+    public Byte execute(ServiceOrder serviceOrder, UserToken user)
+    {
+        log.info("[FixAuditAction] 开始执行带创建运单的接受服务单逻辑，boId={},", serviceOrder.getId());
+
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
+        // 使用 dto 实例来创建内部类实例
+        dto.setSender(dto.new ContactsInfo());
+        dto.setDelivery(dto.new ContactsInfo());
         ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
@@ -40,6 +38,7 @@ public class ExpressCancelAction implements CancelAction {
         dto.getSender().setMobile(serviceProvider.getMobile());
         dto.getSender().setName(serviceProvider.getConsignee());
         //收件者信息
+        dto.getDelivery().setRegionId(serviceOrder.getRegionId());
         dto.getDelivery().setAddress(serviceOrder.getAddress());
         dto.getDelivery().setMobile(serviceOrder.getMobile());
         dto.getDelivery().setName(serviceOrder.getConsignee());
@@ -66,20 +65,19 @@ public class ExpressCancelAction implements CancelAction {
             //处理结果
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 Long expressId = ret.getData().getId();
-                log.info("[ExpressCancelAction] 取消寄件型服务单并创建运单成功, 运单号: {}", expressId);
+                log.info("[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 运单号: {}", expressId);
                 serviceOrder.setExpressId(expressId);
             } else {
-                log.error("[ExpressCancelAction] 物流模块返回错误: {}", ret.getErrmsg());
+                log.error("[ExpressAcceptAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
-            log.error("[ExpressCancelAction] 远程调用异常, boId={}", serviceOrder.getId(), e);
+            log.error("[ExpressAcceptAction] 远程调用异常, boId={}", serviceOrder.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
-        //取消状态变更为 已取消
-        return ServiceOrder.CANCEL;
+        return serviceOrder.UNCHECK;
     }
 }
