@@ -217,6 +217,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         if (action != null) {
             // 执行策略
             nextStatus = action.execute(this,user);
+
         } else {
             // 如果没有策略，默认流转到 CANCEL 状态
             nextStatus = CANCEL;

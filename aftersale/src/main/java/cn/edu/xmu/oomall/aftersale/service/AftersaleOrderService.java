@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -90,7 +91,6 @@ public class AftersaleOrderService {
         // 1. 查出 PO
         AftersaleOrderPo po = aftersaleOrderDao.findById(id);
         if (po == null) {
-            log.warn("取消失败: 售后单不存在, id={}", id);
             throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");
         }
 
@@ -101,8 +101,7 @@ public class AftersaleOrderService {
              &&!(Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
              &&!(Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
         ) {
-            log.warn("取消失败: 状态不正确, id={}, currentStatus={}", id, bo.getStatus());
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
 
 

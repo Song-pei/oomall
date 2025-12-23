@@ -148,7 +148,7 @@ public class ServiceCancelActionControllerTest {
                                 .header("authorization", "Bearer test-token")
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errno").value(ReturnNo.INTERNAL_SERVER_ERR.getErrNo()))
+                .andExpect(jsonPath("$.errno").value(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()))
                 .andDo(print());
 
         // 4. 验数据库（状态应保持原样）
