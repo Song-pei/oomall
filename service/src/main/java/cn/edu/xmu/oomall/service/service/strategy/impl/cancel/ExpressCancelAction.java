@@ -33,6 +33,8 @@ public class ExpressCancelAction implements CancelAction {
         // TODO:
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
+        dto.setSender(dto.new ContactsInfo());
+        dto.setDelivery(dto.new ContactsInfo());
         ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
