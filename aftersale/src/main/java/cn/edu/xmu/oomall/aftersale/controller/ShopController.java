@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.aftersale.controller;
 
+import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
@@ -160,15 +161,9 @@ public class ShopController {
             );
             log.info("售后单验收成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
-        } catch (IllegalArgumentException e) {
-            log.warn("验收失败(参数错误): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-        } catch (IllegalStateException e) {
-            log.warn("验收失败(状态不允许): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.STATENOTALLOW);
-        } catch (Exception e) {
-            log.error("验收失败", e);
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        } catch (BusinessException e) {
+            log.error("验收失败信息,errno={},errmsg={}", e.getErrno(),e.getMessage());
+            return new ReturnObject(e.getErrno(), e.getMessage());
         }
     }
 }

@@ -1,8 +1,12 @@
 package cn.edu.xmu.oomall.aftersale.dao.bo;
 
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
+import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.OOMallObject;
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageCreateDTO;
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -36,9 +40,9 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Long customerId;
     private Long orderId;
     private Long serviceOrderId;
-    private Long expressId;
+    private Long customeExpressId;
     private Long refundId;
-    private Long exchangeExpressId;
+    private Long shopExpressId;
 
     private Integer type; //0换货，1退货, 2维修
     private Integer status;
@@ -236,18 +240,30 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     public void inspect(String exceptionDescription,boolean confirm, StrategyRouter router,UserToken user) {
         // 1. 基础状态校验
         if (!UNCHECK.equals(this.status)) {
+            log.info("当前状态不允许验收: id={}, status={}", this.id, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");
         }
         // ============ 2. 优先处理：验收拒绝 ============
         if (!confirm) {
-            if (this.allowStatus(CANCEL)) {
-                this.status = CANCEL;
-                this.exceptionDescription = exceptionDescription;
-                return; // 处理完直接结束
-            } else {
-                throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态无法取消");
+            this.exceptionDescription = exceptionDescription;
+            InspectAction refuseAction = router.route(this.type, this.status, "REFUSEINSPECT", InspectAction.class);
+            if (refuseAction == null) {
+                log.error("未找到验收策略: type={}, status={}", this.type, this.status);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收策略");
             }
+            // 执行策略并获取目标状态
+            Integer refuseNextStatus = refuseAction.execute(this, user);
+
+            // 结合 allowStatus 校验状态流转是否合法
+            if (refuseNextStatus != null && this.allowStatus(refuseNextStatus)) {
+                this.status = refuseNextStatus;
+            } else {
+                log.error("验收通过后试图流转到非法状态: current={}, next={}", this.status, refuseNextStatus);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "验收后状态流转异常");
+            }
+            return; // 处理完直接结束
         }
+
 
         // ============ 3. 主流程：验收通过 ============
         // 能走到这里说明 confirm 为 true，无需 else

@@ -14,13 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component("expressInspectAction")
-public class ExpressInspectAction implements InspectAction {
+@Component("expressRefuseInspectAction")
+public class ExpressRefuseInspectAction implements InspectAction {
     @Resource
     private ExpressClient expressClient;
     @Override
     public Integer execute(AftersaleOrder bo, UserToken user) {
-        log.info("[ExpressInspectAction] 开始执行退换货验收策略 aftersaleId={}", bo.getId());
         try{
             // 1. 构建 DTO
             PackageCreateDTO.Contact sender = PackageCreateDTO.Contact.builder()
@@ -41,7 +40,7 @@ public class ExpressInspectAction implements InspectAction {
                     .sender(sender)
                     .delivery(delivery)
                     .shopLogisticId(1L)
-                    .goodsType("换货商品")
+                    .goodsType("验收失败退回商品")
                     .weight(1L)
                     .payMethod(2)
                     .build();
@@ -55,9 +54,9 @@ public class ExpressInspectAction implements InspectAction {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 PackageResponseDTO packageVo = ret.getData();
 
-                bo.setShopExpressId(ret.getData().getId());// 设置换货运单ID
+                bo.setShopExpressId(ret.getData().getId());// 设置运单ID
 
-                log.info("[ExpressAuditAction] 换货运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
+                log.info("[ExpressAuditAction] 验收退回运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
             } else {
                 log.error("[ExpressAuditAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
@@ -67,8 +66,8 @@ public class ExpressInspectAction implements InspectAction {
             throw be;
         } catch (Exception e) {
             log.error("[ExpressInspectAction] 远程调用异常, boId={}", bo.getId(), e);
-            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建换货运单失败");
+            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建验收退回运单失败");
         }
-        return AftersaleOrder.UNCHANGE;
+        return AftersaleOrder.CANCEL;
     }
 }

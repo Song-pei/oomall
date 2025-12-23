@@ -39,7 +39,7 @@ public class ExpressCancelAction implements CancelAction {
             // 远程调用物流服务
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),
-                    bo.getExpressId(),
+                    bo.getCustomeExpressId(),
                     token
             );
 

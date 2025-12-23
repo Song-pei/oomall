@@ -67,16 +67,32 @@ after-sale:
       desc: "维修取消服务单"
 
     # --- 验收流程 (INSPECT) ---
-    # 退货(0) + 待验收(1)
+    # 退货(0) + 待验收(1),通过验收
     - type: 0
       status: 1
       opt: "INSPECT"
       bean-name: "refundInspectAction"
       desc: "退货验收"
 
-    # 换货(1) + 待验收(1)
+    # 换货(1) + 待验收(1)，通过验收
     - type: 1
       status: 1
       opt: "INSPECT"
       bean-name: "expressInspectAction"
       desc: "换货验收"
+
+    # 退货(0) + 待验收(1),不通过验收
+    - type: 0
+      status: 1
+      opt: "REFUSEINSPECT"
+      bean-name: "expressRefuseInspectAction"
+      desc: "退货验收"
+
+    # 换货(1) + 待验收(1)，不通过验收
+    - type: 1
+      status: 1
+      opt: "REFUSEINSPECT"
+      bean-name: "expressRefuseInspectAction"
+      desc: "换货验收"
+
+
