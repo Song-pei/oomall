@@ -181,7 +181,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
 
         if (action == null) {
             log.error("未找到接受策略: type={}, status={}", this.type, this.status);
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的接受策略");
+            throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的接受策略");
         }
 
         // 3. 执行策略并获取目标状态

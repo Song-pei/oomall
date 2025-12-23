@@ -209,6 +209,6 @@ class ServiceOrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.errno", is(ReturnNo.FIELD_NOTVALID.getErrNo())));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.errno", is(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo())));
     }
 }

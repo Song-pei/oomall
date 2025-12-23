@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.service.controller;
 
+
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.ReturnObject;
@@ -57,13 +58,10 @@ public class ServiceOrderController {
                 );
                 log.info("服务单接受成功: id={}", id);
                 return new ReturnObject(ReturnNo.OK);
-            } catch (IllegalArgumentException e) {
-                log.warn("服务单接受失败(参数错误): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-            } catch (IllegalStateException e) {
-                log.warn("服务单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.STATENOTALLOW);
-            } catch (Exception e) {
+            } catch (BusinessException e) {
+                log.error("服务单接受失败: id={}, error={}", id, e.getMessage(), e);
+                return new ReturnObject(e.getErrno());
+            }catch (Exception e) {
                 log.error("服务单接受失败: id={}, error={}", id, e.getMessage(), e);
                 return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
             }
@@ -134,12 +132,9 @@ public class ServiceOrderController {
             );
             log.info("运单验收成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
-        } catch (IllegalArgumentException e) {
-            log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-        } catch (IllegalStateException e) {
-            log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        }catch (BusinessException e) {
+            log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(e.getErrno());
         } catch (Exception e) {
             log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
@@ -206,7 +201,7 @@ public class ServiceOrderController {
             return new ReturnObject(ReturnNo.OK);
         } catch (BusinessException e) {
             log.error("服务单退回失败: id={}, error={}", id, e.getMessage());
-            return new ReturnObject(e.getErrno()); 
+            return new ReturnObject(e.getErrno());
         } catch (Exception e) {
             log.error("服务单退回失败: id={}, error={}", id, e.getMessage(), e);
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
