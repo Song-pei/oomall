@@ -251,7 +251,6 @@ class ServiceOrderAcceptControllerTest {
 
         ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();
         dto.setConfirm(true);
-        dto.setMaintainername("默认用户测试");
         dto.setMaintainername("测试员工");
         dto.setMaintainermobile("13812345678");
         // 在 mockMvc 请求时不传入 UserToken（或者确保拦截器没把 User 塞进去）
@@ -280,10 +279,10 @@ class ServiceOrderAcceptControllerTest {
                         any()           // user (UserToken)
                 );
 
-        ReceiveExpressDto dto = new ReceiveExpressDto();
-        dto.setResult("异常测试");
-        dto.setAccepted(true);
-
+        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();
+        dto.setConfirm(true);
+        dto.setMaintainername("测试员工");
+        dto.setMaintainermobile("13812345678");
         // 3. 执行请求并验证
         mockMvc.perform(post(ACCEPT_URL, 1, 2005)
                         .contentType(MediaType.APPLICATION_JSON)
