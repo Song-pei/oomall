@@ -1,4 +1,4 @@
-# src/main/resources/application.yml (或者是 strategy-rules.yml)
+# src/main/resources/application.yml
 after-sale:
   strategies:
     # --- 审核流程 (AUDIT) ---
