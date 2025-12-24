@@ -7,6 +7,7 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class ExpressCancelAction implements CancelAction {
     @Resource
     private ExpressClient expressClient;
     @Override
-    public Integer execute(AftersaleOrder bo, UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo, UserToken user) {
         log.info("[ExpressCancelAction] 命中物流拦截策略，boId={}", bo.getId());
         try {
 
@@ -58,6 +59,6 @@ public class ExpressCancelAction implements CancelAction {
 
 
         //取消状态变更为 已取消
-        return AftersaleOrder.CANCEL;
+        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
     }
 }

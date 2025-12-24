@@ -1,6 +1,7 @@
 package cn.edu.xmu.oomall.aftersale.service.strategy.action;
 
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 
 /**
  * 审核动作接口
@@ -15,5 +16,5 @@ public interface AuditAction {
      * @param conclusion 审核意见/结论 (这是从 Controller -> Strategy 透传下来的参数)
      */
     // 注意：这里参数要和 TypeStrategy.audit 里的需求对齐
-    Integer execute(AftersaleOrder bo, String conclusion);
+    <T> ActionResult<T> execute(AftersaleOrder bo, String conclusion);
 }
