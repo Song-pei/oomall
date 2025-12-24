@@ -20,63 +20,61 @@ import cn.edu.xmu.javaee.core.model.ReturnObject;
 <span class="fc" id="L20">public class ExpressAcceptAction implements AcceptAction {</span>
     @Resource
     private ExpressClient expressClient;
-    @Resource
-    private ServiceProviderDao serviceProviderDao;
-    public Byte execute(ServiceOrder serviceOrder, UserToken user)
+
+    public Byte execute(ServiceOrder serviceOrder,  ServiceProvider serviceProvider,UserToken user)
     {
-<span class="fc" id="L27">        log.info(&quot;[FixAuditAction] 开始执行带创建运单的接受服务单逻辑，boId={},&quot;, serviceOrder.getId());</span>
+<span class="fc" id="L26">        log.info(&quot;[FixAuditAction] 开始执行带创建运单的接受服务单逻辑，boId={},&quot;, serviceOrder.getId());</span>
 
         // 1. 组装参数
-<span class="fc" id="L30">        ExpressDto dto = new ExpressDto();</span>
+<span class="fc" id="L29">        ExpressDto dto = new ExpressDto();</span>
         // 使用 dto 实例来创建内部类实例
-<span class="fc" id="L32">        dto.setSender(dto.new ContactsInfo());</span>
-<span class="fc" id="L33">        dto.setDelivery(dto.new ContactsInfo());</span>
-<span class="fc" id="L34">        ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());</span>
+<span class="fc" id="L31">        dto.setSender(dto.new ContactsInfo());</span>
+<span class="fc" id="L32">        dto.setDelivery(dto.new ContactsInfo());</span>
         //寄件者（服务商）信息
-<span class="fc" id="L36">        dto.getSender().setRegionId(serviceProvider.getRegionId());</span>
-<span class="fc" id="L37">        dto.getSender().setAddress(serviceProvider.getAddress());</span>
-<span class="fc" id="L38">        dto.getSender().setMobile(serviceProvider.getMobile());</span>
-<span class="fc" id="L39">        dto.getSender().setName(serviceProvider.getConsignee());</span>
+<span class="fc" id="L34">        dto.getSender().setRegionId(serviceProvider.getRegionId());</span>
+<span class="fc" id="L35">        dto.getSender().setAddress(serviceProvider.getAddress());</span>
+<span class="fc" id="L36">        dto.getSender().setMobile(serviceProvider.getMobile());</span>
+<span class="fc" id="L37">        dto.getSender().setName(serviceProvider.getConsignee());</span>
         //收件者信息
-<span class="fc" id="L41">        dto.getDelivery().setRegionId(serviceOrder.getRegionId());</span>
-<span class="fc" id="L42">        dto.getDelivery().setAddress(serviceOrder.getAddress());</span>
-<span class="fc" id="L43">        dto.getDelivery().setMobile(serviceOrder.getMobile());</span>
-<span class="fc" id="L44">        dto.getDelivery().setName(serviceOrder.getConsignee());</span>
+<span class="fc" id="L39">        dto.getDelivery().setRegionId(serviceOrder.getRegionId());</span>
+<span class="fc" id="L40">        dto.getDelivery().setAddress(serviceOrder.getAddress());</span>
+<span class="fc" id="L41">        dto.getDelivery().setMobile(serviceOrder.getMobile());</span>
+<span class="fc" id="L42">        dto.getDelivery().setName(serviceOrder.getConsignee());</span>
         //其他信息
         //运单模块没有获取合同的接口，任务无法完成
-<span class="fc" id="L47">        dto.setShopLogisticId(Long.valueOf(&quot;0&quot;));</span>
+<span class="fc" id="L45">        dto.setShopLogisticId(Long.valueOf(&quot;0&quot;));</span>
         //商品模块没有find相关方法，任务无法完成
-<span class="fc" id="L49">        dto.setGoodsType(&quot;UNKOWN&quot;);</span>
+<span class="fc" id="L47">        dto.setGoodsType(&quot;UNKOWN&quot;);</span>
 
-<span class="fc" id="L51">        dto.setWeight(null);</span>
+<span class="fc" id="L49">        dto.setWeight(null);</span>
         //无合同相关，无法完成
-<span class="fc" id="L53">        dto.setPayMethod(0);</span>
-<span class="fc" id="L54">        String token = null;       // 内部调用通常为空，或透传 user token</span>
-<span class="fc" id="L55">        Integer userLevel = null;</span>
+<span class="fc" id="L51">        dto.setPayMethod(0);</span>
+<span class="fc" id="L52">        String token = null;       // 内部调用通常为空，或透传 user token</span>
+<span class="fc" id="L53">        Integer userLevel = null;</span>
         try {
             //远程调用
-<span class="fc" id="L58">            InternalReturnObject&lt;ExpressPo&gt; ret = expressClient.createPackage(</span>
-<span class="fc" id="L59">                    serviceOrder.getShopId(),</span>
+<span class="fc" id="L56">            InternalReturnObject&lt;ExpressPo&gt; ret = expressClient.createPackage(</span>
+<span class="fc" id="L57">                    serviceOrder.getShopId(),</span>
                     dto,
                     token,
                     userLevel
             );
 
             //处理结果
-<span class="fc bfc" id="L66" title="All 4 branches covered.">            if (ret.getErrno() == 0 &amp;&amp; ret.getData() != null) {</span>
-<span class="fc" id="L67">                Long expressId = ret.getData().getId();</span>
-<span class="fc" id="L68">                log.info(&quot;[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 运单号: {}&quot;, expressId);</span>
-<span class="fc" id="L69">                serviceOrder.setExpressId(expressId);</span>
-<span class="fc" id="L70">            } else {</span>
-<span class="fc" id="L71">                log.error(&quot;[ExpressAcceptAction] 物流模块返回错误: {}&quot;, ret.getErrmsg());</span>
-<span class="fc" id="L72">                throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());</span>
+<span class="fc bfc" id="L64" title="All 4 branches covered.">            if (ret.getErrno() == 0 &amp;&amp; ret.getData() != null) {</span>
+<span class="fc" id="L65">                Long expressId = ret.getData().getId();</span>
+<span class="fc" id="L66">                log.info(&quot;[ExpressAcceptAction] 接受寄件型服务单并创建运单成功, 运单号: {}&quot;, expressId);</span>
+<span class="fc" id="L67">                serviceOrder.setExpressId(expressId);</span>
+<span class="fc" id="L68">            } else {</span>
+<span class="fc" id="L69">                log.error(&quot;[ExpressAcceptAction] 物流模块返回错误: {}&quot;, ret.getErrmsg());</span>
+<span class="fc" id="L70">                throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());</span>
             }
 
-<span class="fc" id="L75">        } catch (Exception e) {</span>
-<span class="fc" id="L76">            log.error(&quot;[ExpressAcceptAction] 远程调用异常, boId={}&quot;, serviceOrder.getId(), e);</span>
-<span class="fc" id="L77">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);</span>
-<span class="fc" id="L78">        }</span>
-<span class="fc" id="L79">        return serviceOrder.UNCHECK;</span>
+<span class="fc" id="L73">        } catch (Exception e) {</span>
+<span class="fc" id="L74">            log.error(&quot;[ExpressAcceptAction] 远程调用异常, boId={}&quot;, serviceOrder.getId(), e);</span>
+<span class="fc" id="L75">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);</span>
+<span class="fc" id="L76">        }</span>
+<span class="fc" id="L77">        return serviceOrder.UNCHECK;</span>
     }
 
 }

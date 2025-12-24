@@ -6,6 +6,7 @@ import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
 public class InterceptingExpressCancelAction implements CancelAction {
     @Resource
     private ExpressClient expressClient;
-    public Byte execute(ServiceOrder serviceOrder, UserToken user){
+    public Byte execute(ServiceOrder serviceOrder, ServiceProvider serviceProvider,UserToken user){
         log.info("[InterceptingCancelAction] 命中物流拦截策略，serviceOrderId={}", serviceOrder.getId());
         String token = null;
 

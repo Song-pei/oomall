@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.service.service.strategy.impl.finish;
 
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class SimpleFinishAction implements FinishAction {
 
     @Override
-    public Byte execute(ServiceOrder serviceOrder, UserToken user) {
+    public Byte execute(ServiceOrder serviceOrder, ServiceProvider serviceProvider,UserToken user) {
 
         log.debug("SimpleFinishAction: serviceOrderId={}, type={}, status={}",
                 serviceOrder.getId(), serviceOrder.getType(), serviceOrder.getStatus());

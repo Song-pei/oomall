@@ -6,6 +6,7 @@ import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
@@ -15,81 +16,82 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-<span class="fc" id="L18">@Slf4j</span>
+<span class="fc" id="L19">@Slf4j</span>
 @Component(&quot;expressFinishAction&quot;)
-<span class="fc" id="L20">public class ExpressFinishAction implements FinishAction {</span>
+<span class="fc" id="L21">public class ExpressFinishAction implements FinishAction {</span>
 
     @Resource
     private ExpressClient expressClient;
 
     @Override
-    public Byte execute(ServiceOrder bo, UserToken user) {
-<span class="fc" id="L27">        log.info(&quot;[ExpressFinishAction] 开始执行寄件完成策略，boId={}&quot;, bo.getId());</span>
+    public Byte execute(ServiceOrder bo, ServiceProvider serviceProvider,UserToken user) {
+<span class="fc" id="L28">        log.info(&quot;[ExpressFinishAction] 开始执行寄件完成策略，boId={}&quot;, bo.getId());</span>
 
         // 1. 组装请求体
-<span class="fc" id="L30">        ExpressDto requestDto = new ExpressDto();</span>
-<span class="fc" id="L31">        requestDto.setShopLogisticId(0L);</span>
-<span class="fc" id="L32">        requestDto.setGoodsType(&quot;1&quot;);</span>
-<span class="fc" id="L33">        requestDto.setWeight(1L);</span>
-<span class="fc" id="L34">        requestDto.setPayMethod(1);</span>
+<span class="fc" id="L31">        ExpressDto requestDto = new ExpressDto();</span>
+<span class="fc" id="L32">        requestDto.setShopLogisticId(0L);</span>
+<span class="fc" id="L33">        requestDto.setGoodsType(&quot;1&quot;);</span>
+<span class="fc" id="L34">        requestDto.setWeight(1L);</span>
+<span class="fc" id="L35">        requestDto.setPayMethod(1);</span>
 
         // 2. 组装联系人
-<span class="fc" id="L37">        ExpressDto.ContactsInfo sender = requestDto.new ContactsInfo();</span>
-<span class="fc" id="L38">        sender.setName(bo.getMaintainerName());</span>
-<span class="fc" id="L39">        sender.setMobile(bo.getMaintainerMobile());</span>
-<span class="fc" id="L40">        sender.setAddress(&quot;服务商默认发货地址&quot;);</span>
-<span class="fc" id="L41">        sender.setRegionId(0L);</span>
+<span class="fc" id="L38">        ExpressDto.ContactsInfo sender = requestDto.new ContactsInfo();</span>
 
-<span class="fc" id="L43">        ExpressDto.ContactsInfo delivery = requestDto.new ContactsInfo();</span>
-<span class="fc" id="L44">        delivery.setName(bo.getConsignee());</span>
-<span class="fc" id="L45">        delivery.setMobile(bo.getMobile());</span>
-<span class="fc" id="L46">        delivery.setAddress(bo.getAddress());</span>
-<span class="fc" id="L47">        delivery.setRegionId(bo.getRegionId());</span>
+<span class="fc" id="L40">        sender.setRegionId(serviceProvider.getRegionId());</span>
+<span class="fc" id="L41">        sender.setAddress(serviceProvider.getAddress());</span>
+<span class="fc" id="L42">        sender.setMobile(serviceProvider.getMobile());</span>
+<span class="fc" id="L43">        sender.setName(serviceProvider.getConsignee());</span>
 
-<span class="fc" id="L49">        requestDto.setSender(sender);</span>
-<span class="fc" id="L50">        requestDto.setDelivery(delivery);</span>
+<span class="fc" id="L45">        ExpressDto.ContactsInfo delivery = requestDto.new ContactsInfo();</span>
+<span class="fc" id="L46">        delivery.setName(bo.getConsignee());</span>
+<span class="fc" id="L47">        delivery.setMobile(bo.getMobile());</span>
+<span class="fc" id="L48">        delivery.setAddress(bo.getAddress());</span>
+<span class="fc" id="L49">        delivery.setRegionId(bo.getRegionId());</span>
+
+<span class="fc" id="L51">        requestDto.setSender(sender);</span>
+<span class="fc" id="L52">        requestDto.setDelivery(delivery);</span>
 
         // 3. 安全获取 Header 参数 (防止 NPE)
         // 注意：根据你的报错日志，UserToken 的方法名是 getUserLevel()
-<span class="fc" id="L54">        String userName = Optional.ofNullable(user)</span>
-<span class="fc" id="L55">                .map(UserToken::getName)</span>
-<span class="fc" id="L56">                .orElse(&quot;system&quot;);</span>
+<span class="fc" id="L56">        String userName = Optional.ofNullable(user)</span>
+<span class="fc" id="L57">                .map(UserToken::getName)</span>
+<span class="fc" id="L58">                .orElse(&quot;system&quot;);</span>
 
-<span class="fc" id="L58">        Integer userLevel = Optional.ofNullable(user)</span>
-<span class="fc" id="L59">                .map(UserToken::getUserLevel)</span>
-<span class="fc" id="L60">                .orElse(1);</span>
+<span class="fc" id="L60">        Integer userLevel = Optional.ofNullable(user)</span>
+<span class="fc" id="L61">                .map(UserToken::getUserLevel)</span>
+<span class="fc" id="L62">                .orElse(1);</span>
 
         InternalReturnObject&lt;ExpressPo&gt; ret;
         try {
             // 4. 远程调用
-<span class="fc" id="L65">            ret = expressClient.createPackage(bo.getShopId(), requestDto, userName, userLevel);</span>
-<span class="nc" id="L66">        } catch (BusinessException be) {</span>
-<span class="nc" id="L67">            throw be;</span>
-<span class="fc" id="L68">        } catch (Exception e) {</span>
-<span class="fc" id="L69">            log.error(&quot;[ExpressFinishAction] 远程调用异常 boId={}&quot;, bo.getId(), e);</span>
-<span class="fc" id="L70">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务调用失败&quot;);</span>
-<span class="fc" id="L71">        }</span>
+<span class="fc" id="L67">            ret = expressClient.createPackage(bo.getShopId(), requestDto, userName, userLevel);</span>
+<span class="nc" id="L68">        } catch (BusinessException be) {</span>
+<span class="nc" id="L69">            throw be;</span>
+<span class="fc" id="L70">        } catch (Exception e) {</span>
+<span class="fc" id="L71">            log.error(&quot;[ExpressFinishAction] 远程调用异常 boId={}&quot;, bo.getId(), e);</span>
+<span class="fc" id="L72">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务调用失败&quot;);</span>
+<span class="fc" id="L73">        }</span>
 
         // 5. 防御性检查 ret 是否为 null
         // 如果 Mockito 打桩没匹配上，ret 会是 null，这里必须拦截，否则下面 getErrno 会报 NPE
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (ret == null) {</span>
-<span class="nc" id="L76">            log.error(&quot;[ExpressFinishAction] 远程调用返回 null (可能是 Mock 参数不匹配)&quot;);</span>
-<span class="nc" id="L77">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务无响应&quot;);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (ret == null) {</span>
+<span class="nc" id="L78">            log.error(&quot;[ExpressFinishAction] 远程调用返回 null (可能是 Mock 参数不匹配)&quot;);</span>
+<span class="nc" id="L79">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务无响应&quot;);</span>
         }
 
         // 6. 处理业务结果
-<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if (ret.getErrno() != 0 || ret.getData() == null) {</span>
-<span class="nc" id="L82">            log.error(&quot;[ExpressFinishAction] 创建运单失败: {}&quot;, ret.getErrmsg());</span>
-<span class="nc" id="L83">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务异常: &quot; + ret.getErrmsg());</span>
+<span class="pc bpc" id="L83" title="2 of 4 branches missed.">        if (ret.getErrno() != 0 || ret.getData() == null) {</span>
+<span class="nc" id="L84">            log.error(&quot;[ExpressFinishAction] 创建运单失败: {}&quot;, ret.getErrmsg());</span>
+<span class="nc" id="L85">            throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, &quot;物流服务异常: &quot; + ret.getErrmsg());</span>
         }
 
-<span class="fc" id="L86">        ExpressPo po = ret.getData();</span>
-<span class="fc" id="L87">        log.info(&quot;[ExpressFinishAction] 运单创建成功: id={}, billCode={}&quot;, po.getId(), po.getBillCode());</span>
+<span class="fc" id="L88">        ExpressPo po = ret.getData();</span>
+<span class="fc" id="L89">        log.info(&quot;[ExpressFinishAction] 运单创建成功: id={}, billCode={}&quot;, po.getId(), po.getBillCode());</span>
 
-<span class="fc" id="L89">        bo.setExpressId(po.getId());</span>
-<span class="fc" id="L90">        bo.setSerialNo(po.getBillCode());</span>
+<span class="fc" id="L91">        bo.setExpressId(po.getId());</span>
+<span class="fc" id="L92">        bo.setSerialNo(po.getBillCode());</span>
 
-<span class="fc" id="L92">        return ServiceOrder.FINISH;</span>
+<span class="fc" id="L94">        return ServiceOrder.FINISH;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
