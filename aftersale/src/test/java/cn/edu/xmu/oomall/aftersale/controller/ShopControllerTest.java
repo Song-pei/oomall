@@ -364,4 +364,62 @@ public class ShopControllerTest {
                 .andExpect(jsonPath("$.errno").value(33)) // REMOTE_SERVICE_FAIL
                 .andDo(print());
     }
+
+
+
+
+    // ==========================================
+    //根据 ID 查询售后单详情
+    // Path: GET /shops/{shopId}/aftersales/{id}
+    // ==========================================
+
+    /**
+     * 测试：成功查询售后单详情
+     * 前置条件：数据库中存在 ID=1 的售后单，且属于 Shop=1
+     */
+    @Test
+    public void getAftersaleById_Success() throws Exception {
+        // 假设 ID 1 是存在的且属于 Shop 1 (根据你现有的测试数据推断)
+        mockMvc.perform(get("/shops/1/aftersales/1")
+                        .header("authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errno").value(0)) // 成功
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.shopId").value(1))
+                .andDo(print());
+    }
+
+    /**
+     * 测试：查询不存在的售后单 ID
+     * 预期：返回 404 状态码，errno = 4 (RESOURCE_ID_NOTEXIST)
+     */
+    @Test
+    public void getAftersaleById_NotFound() throws Exception {
+        mockMvc.perform(get("/shops/1/aftersales/999999") // 使用一个不存在的ID
+                        .header("authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()) // Http 404
+                .andExpect(jsonPath("$.errno").value(4)) // ReturnNo.RESOURCE_ID_NOTEXIST
+                .andDo(print());
+    }
+
+    /**
+     * 测试：URL中的 ShopId 与 售后单实际所属的 ShopId 不一致
+     * 场景：查询 ID=1 的售后单（属于Shop 1），但是 URL 请求的是 Shop 2
+     * 预期：为了安全，应该报“资源不存在”或者“无权访问”
+     * 根据上一轮代码逻辑：if (!po.getShopId().equals(shopId)) throw RESOURCE_ID_NOTEXIST
+     */
+    @Test
+    public void getAftersaleById_ShopMismatch() throws Exception {
+        // 这里的 ID 1 存在，但它属于 Shop 1，我们试图通过 Shop 2 的路径去访问它
+        mockMvc.perform(get("/shops/2/aftersales/1")
+                        .header("authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound()) // 遵循上一轮代码逻辑，抛出的是 RESOURCE_ID_NOTEXIST
+                .andExpect(jsonPath("$.errno").value(4)) // ReturnNo.RESOURCE_ID_NOTEXIST ("该店铺下无此售后单")
+                .andDo(print());
+    }
+
 }

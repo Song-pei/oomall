@@ -35,6 +35,36 @@ public class AftersaleOrderService {
         return aftersaleOrderDao.searchAftersales(shopId, aftersaleSn, orderSn, status, type, applyTime, page, pageSize, user);
     }
 
+
+    /**
+     * 根据ID查询售后单详情
+     */
+    public AftersaleOrder getAftersaleById(Long shopId, Long id, UserToken user) {
+        // 1. 调用 DAO 查询 PO 对象
+        AftersaleOrderPo po = aftersaleOrderDao.findById(id);
+
+        // 2. 校验是否存在
+        if (po == null) {
+            throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");
+        }
+
+        // 3. 校验 path 中的 shopId 是否与数据中的 shopId 一致
+        // 防止用户通过 A 店铺的 API 访问 B 店铺的数据
+        if (!po.getShopId().equals(shopId)) {
+            throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "该店铺下无此售后单");
+        }
+
+        // 4. 权限隔离校验
+        if (user.getDepartId() != null && user.getDepartId() != 0L) {
+            if (!user.getDepartId().equals(po.getShopId())) {
+                throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, "无权查看其他店铺的售后单");
+            }
+        }
+
+        // 5. PO 转 BO 并返回
+        return CloneFactory.copy(new AftersaleOrder(), po);
+    }
+
     /**
      * 审核售后单
      */
