@@ -156,16 +156,9 @@ public class AftersaleOrderService {
         ) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
-        List<ExpressPo> expressPoList =expressDao.findByAftersaleOrderId(bo.getId());
-        Express express = null;
-        if (expressPoList != null && !expressPoList.isEmpty()) {
-            ExpressPo expressPo = expressPoList.getFirst();
-            express = CloneFactory.copy(new Express(), expressPo);
-        } else {
-            express = new Express();
-        }
+
         // 4. 执行 BO 业务逻辑
-        ActionResult<?> actionResult=bo.customerCancel(strategyRouter,express,user);
+        ActionResult<?> actionResult=bo.customerCancel(strategyRouter,user);
         // 5.BO 更新审计信息
         bo.setModifier(user);
 

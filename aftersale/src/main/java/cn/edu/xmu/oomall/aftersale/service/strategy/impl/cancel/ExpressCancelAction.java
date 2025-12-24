@@ -5,14 +5,18 @@ import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
+import cn.edu.xmu.oomall.aftersale.dao.ExpressDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.dao.bo.Express;
+import cn.edu.xmu.oomall.aftersale.mapper.po.ExpressPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
+
+import java.util.List;
 
 /**
  * 退货换货取消策略
@@ -24,8 +28,10 @@ public class ExpressCancelAction implements CancelAction {
 
     @Resource
     private ExpressClient expressClient;
+    @Resource
+    ExpressDao expressDao;
     @Override
-    public <T> ActionResult<T> execute(AftersaleOrder bo, Express express , UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo,  UserToken user) {
         log.info("[ExpressCancelAction] 命中物流拦截策略，boId={}", bo.getId());
         try {
 
@@ -36,10 +42,14 @@ public class ExpressCancelAction implements CancelAction {
             if (attributes != null) {
                 token = attributes.getRequest().getHeader("authorization");
             }*/
+            //调用dao层获得expressId;
+            List<ExpressPo> expressPoList =expressDao.findByAftersaleOrderId(bo.getId());
+            ExpressPo expressPo = expressPoList.getFirst();
+
             // 远程调用物流服务
             InternalReturnObject<PackageResponseDTO> ret = expressClient.cancelPackage(
                     bo.getShopId(),
-                    express.getExpressId(),
+                    expressPo.getExpressId(),
                     token
             );
 

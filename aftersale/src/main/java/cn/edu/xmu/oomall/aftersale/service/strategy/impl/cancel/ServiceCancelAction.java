@@ -27,7 +27,7 @@ public class ServiceCancelAction implements CancelAction {
     @Resource
     private ServiceOrderClient serviceOrderClient;
     @Override
-    public <T> ActionResult<T> execute(AftersaleOrder bo, Express express, UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo,  UserToken user) {
         log.info("[ServiceCancelAction] 命中服务单取消策略，boId={}", bo.getId());
         // 必须存在服务单号
         if (bo.getServiceOrderId() == null) {
@@ -84,7 +84,7 @@ public class ServiceCancelAction implements CancelAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
             //取消状态变更为 已取消
-            return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
+            return (ActionResult<T>) ActionResult.success(ret, AftersaleOrder.CANCEL);
         } catch (Exception e2) {
             log.error("[ServiceCancelAction] 远程调用取消异常, boId={}", bo.getId(), e2);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);

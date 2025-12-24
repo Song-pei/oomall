@@ -13,5 +13,5 @@ public interface CancelAction {
 
 
     // 1. 定义执行方法
-    <T> ActionResult<T> execute(AftersaleOrder bo, Express express,UserToken user);
+    <T> ActionResult<T> execute(AftersaleOrder bo, UserToken user);
 }

@@ -18,7 +18,7 @@ public class SimpleCancelAction implements CancelAction {
 
 
     @Override
-    public <T> ActionResult<T> execute(AftersaleOrder bo, Express express, UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo,  UserToken user) {
         log.info("[SimpleCancelAction] 命中简单取消策略，boId={}", bo.getId());
 
         log.info("[SimpleCancelAction] 售后单取消成功, 顾客编号：{},售后单号: {}", bo.getCustomerId(),bo.getId());

@@ -29,7 +29,7 @@ public class SimpleCancelActionTest {
         SimpleCancelAction action = new SimpleCancelAction();
         UserToken userToken = new UserToken();
         Express express = null;
-        action.execute(mockAftersaleOrder,express,userToken);
+        action.execute(mockAftersaleOrder,userToken);
 
         // 指定调用次数为 2 次
         Mockito.verify(mockAftersaleOrder, Mockito.times(2)).getId();
