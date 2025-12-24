@@ -1,9 +1,12 @@
 package cn.edu.xmu.oomall.service.controller;
 
+
+import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.ReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.validation.NewGroup;
+import cn.edu.xmu.oomall.service.controller.dto.BackServiceOrderDto;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderAcceptDto;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderFinishDto;
 import cn.edu.xmu.oomall.service.controller.dto.ReceiveExpressDto;
@@ -55,13 +58,10 @@ public class ServiceOrderController {
                 );
                 log.info("服务单接受成功: id={}", id);
                 return new ReturnObject(ReturnNo.OK);
-            } catch (IllegalArgumentException e) {
-                log.warn("服务单接受失败(参数错误): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-            } catch (IllegalStateException e) {
-                log.warn("服务单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-                return new ReturnObject(ReturnNo.STATENOTALLOW);
-            } catch (Exception e) {
+            } catch (BusinessException e) {
+                log.error("服务单接受失败: id={}, error={}", id, e.getMessage(), e);
+                return new ReturnObject(e.getErrno());
+            }catch (Exception e) {
                 log.error("服务单接受失败: id={}, error={}", id, e.getMessage(), e);
                 return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
             }
@@ -132,12 +132,9 @@ public class ServiceOrderController {
             );
             log.info("运单验收成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
-        } catch (IllegalArgumentException e) {
-            log.warn("运单验收失败(参数错误): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-        } catch (IllegalStateException e) {
-            log.warn("运单接受失败(状态不允许): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        }catch (BusinessException e) {
+            log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(e.getErrno());
         } catch (Exception e) {
             log.error("运单接受失败: id={}, error={}", id, e.getMessage(), e);
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
@@ -166,19 +163,49 @@ public class ServiceOrderController {
             serviceOrderService.cancelServiceOrder(id, user);
             log.info("服务单取消成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
-        } catch (IllegalArgumentException e) {
-            log.warn("服务单取消失败(参数错误): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        } catch (IllegalStateException e) {
-            log.warn("服务单取消失败(状态不允许): id={}, error={}", id, e.getMessage());
-            return new ReturnObject(ReturnNo.STATENOTALLOW);
+        }catch (BusinessException e) {
+            log.error("服务单取消失败: id={}, error={}", id, e.getMessage());
+            return new ReturnObject(e.getErrno());
         } catch (Exception e) {
             log.error("服务单取消失败: id={}, error={}", id, e.getMessage(), e);
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
     }
+    /**
+     * 维修师父退回服务单
+     *
+     * @param did       服务商id
+     * @param id       服务单id
+     * @param dto    服务单回退
+     * @param user    登录用户
+     * @return
+     */
+        @PutMapping("/cancel")
+    public ReturnObject backServiceOrder(
+            @PathVariable("did") Long did,
+            @PathVariable("id") Long id,
+            @Validated(NewGroup.class) @RequestBody BackServiceOrderDto dto,
+            UserToken user
+    ) {
+        if (user == null || user.getId() == null) {
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L);
+        }
 
 
-
+        try {
+            serviceOrderService.backServiceOrder(did, id, dto.getResult(), user);
+            log.info("服务单退回成功: id={}", id);
+            return new ReturnObject(ReturnNo.OK);
+        } catch (BusinessException e) {
+            log.error("服务单退回失败: id={}, error={}", id, e.getMessage());
+            return new ReturnObject(e.getErrno());
+        } catch (Exception e) {
+            log.error("服务单退回失败: id={}, error={}", id, e.getMessage(), e);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
 }

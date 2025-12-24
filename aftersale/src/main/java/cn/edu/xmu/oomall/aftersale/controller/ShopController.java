@@ -76,6 +76,37 @@ public class ShopController {
         return new ReturnObject(voList);
     }
 
+
+    /**
+     * 管理员根据id查询售后单详情
+     * Path: /shops/{shopId}/aftersales/{id}
+     */
+    @GetMapping("/aftersales/{id}")
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+    public ReturnObject getAftersaleById(@PathVariable Long shopId,
+                                         @PathVariable Long id,
+                                         UserToken user) {
+
+        log.debug("收到查询售后单详情请求: shopId={}, id={}, user={}", shopId, id, user);
+
+        // 1. Mock 用户逻辑
+        if (user == null || user.getId() == null || user.getName() == null) {
+            log.warn("检测到用户信息不完整，启用 Mock 用户");
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("admin-test");
+            user.setDepartId(0L); // 0代表平台管理员，非0代表商家
+        }
+
+        // 2. 调用 Service 查询
+        AftersaleOrder bo = aftersaleOrderService.getAftersaleById(shopId, id, user);
+
+        // 3. BO 转 VO
+        AftersaleOrderVo vo = CloneFactory.copy(new AftersaleOrderVo(), bo);
+
+        return new ReturnObject(vo);
+    }
+
     /**
      * 审核售后单
      *

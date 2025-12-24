@@ -17,14 +17,15 @@ public interface ExpressClient {
     @PostMapping("/internal/shops/{shopId}/packages")
     InternalReturnObject<ExpressPo> createPackage(@PathVariable Long shopId,
                                @Validated @RequestBody ExpressDto expressDto,
-                               @LoginUser String user,
-                               @UserLevel Integer userLevel) ;
+                               @RequestHeader("user") String user,
+                               @RequestHeader("userLevel") Integer userLevel) ;
 
     @PutMapping("/internal/shops/{shopId}/packages/{id}/cancel")
     InternalReturnObject<ExpressPo> cancelPackage(@PathVariable Long shopId,
                                       @PathVariable Long id,
-                                      @cn.edu.xmu.javaee.core.aop.LoginUser UserToken user,
-                                      @UserLevel Integer userLevel);
+                                      @RequestHeader("user") UserToken user,
+                                      @RequestHeader("userLevel") Integer userLevel);
+
 
 
 }

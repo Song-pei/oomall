@@ -72,12 +72,11 @@ public class ExpressAcceptAction implements AcceptAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
-        } catch (BusinessException be) {
-            throw be;
         } catch (Exception e) {
             log.error("[ExpressAcceptAction] 远程调用异常, boId={}", serviceOrder.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
         return serviceOrder.UNCHECK;
     }
+
 }

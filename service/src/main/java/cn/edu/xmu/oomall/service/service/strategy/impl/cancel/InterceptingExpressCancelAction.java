@@ -10,6 +10,7 @@ import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +19,9 @@ import org.springframework.stereotype.Component;
  * 场景：在“待收件”状态中，此时取消服务单，需要对寄来的物品进行物流拦截
  */
 @Slf4j
-@Component("interceptingCancelAction")
+@Component("interceptingExpressCancelAction")
 public class InterceptingExpressCancelAction implements CancelAction {
-
+    @Resource
     private ExpressClient expressClient;
     public Byte execute(ServiceOrder serviceOrder, UserToken user){
         log.info("[InterceptingCancelAction] 命中物流拦截策略，serviceOrderId={}", serviceOrder.getId());
@@ -44,9 +45,7 @@ public class InterceptingExpressCancelAction implements CancelAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception e) {
+        }  catch (Exception e) {
             log.error("[InterceptingCancelAction] 远程调用异常, boId={}", serviceOrder.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
