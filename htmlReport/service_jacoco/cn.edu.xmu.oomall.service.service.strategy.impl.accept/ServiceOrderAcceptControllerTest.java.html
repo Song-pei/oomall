@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceOrderAcceptControllerTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.service.strategy.impl.accept</a> &gt; <span class="el_source">ServiceOrderAcceptControllerTest.java</span></div><h1>ServiceOrderAcceptControllerTest.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.service.strategy.impl.accept;
+
+import cn.edu.xmu.javaee.core.model.InternalReturnObject;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.oomall.service.ServiceApplication;
+import cn.edu.xmu.oomall.service.controller.dto.ReceiveExpressDto;
+import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderAcceptDto;
+import cn.edu.xmu.oomall.service.service.ServiceOrderService;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
+import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
+import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.beans.factory.annotation.Qualifier;
+@SpringBootTest(classes = ServiceApplication.class, properties = {
+        &quot;spring.cloud.nacos.config.enabled=false&quot;,
+        &quot;spring.cloud.nacos.discovery.enabled=false&quot;,
+        // 注入测试所需的策略路由配置
+        &quot;ser-vice.strategies[0].type=0&quot;,
+        &quot;ser-vice.strategies[0].status=0&quot;,
+        &quot;ser-vice.strategies[0].opt=ACCEPT&quot;,
+        &quot;ser-vice.strategies[0].bean-name=simpleAcceptAction&quot;,
+        &quot;ser-vice.strategies[1].type=1&quot;,
+        &quot;ser-vice.strategies[1].status=0&quot;,
+        &quot;ser-vice.strategies[1].opt=ACCEPT&quot;,
+        &quot;ser-vice.strategies[1].bean-name=expressAcceptAction&quot;,
+
+})
+@AutoConfigureMockMvc
+@Transactional
+
+@DisplayName(&quot;服务单接受接口测试&quot;)
+<span class="fc" id="L55">class ServiceOrderAcceptControllerTest {</span>
+
+
+    @MockitoBean
+    private ExpressClient expressClient;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @MockitoSpyBean
+    private ServiceOrderService serviceOrderService;
+
+    private static final String ACCEPT_URL = &quot;/maintainers/{did}/services/{id}/accept&quot;;
+
+    @BeforeEach
+    public void setup() {
+        // 清理旧数据，确保测试环境干净
+<span class="fc" id="L77">        jdbcTemplate.execute(&quot;DELETE FROM service_service WHERE id IN (100, 300)&quot;);</span>
+<span class="fc" id="L78">        jdbcTemplate.execute(&quot;DELETE FROM service_provider WHERE id = 1&quot;);</span>
+
+        // 插入公共服务商数据
+<span class="fc" id="L81">        jdbcTemplate.execute(&quot;INSERT INTO service_provider &quot; +</span>
+                &quot;(id, name, consignee, address, mobile, region_id, status, gmt_create) &quot; +
+                &quot;VALUES (1, '快捷服务商', '服务商联系人', '厦门市思明区', '13800000000', 350203, 1, NOW())&quot;);
+<span class="fc" id="L84">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景1：上门服务接受成功 (Type=0)&quot;)
+    void acceptSimple_Success() throws Exception {
+        // 准备 Type=0 的数据
+<span class="fc" id="L90">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (300, 1, 200, 350206, '软件园二期', '用户小张', '13911112222', 0, 0, NOW())&quot;);
+
+<span class="fc" id="L94">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L95">        dto.setConfirm(true);</span>
+<span class="fc" id="L96">        dto.setMaintainername(&quot;上门员工&quot;);</span>
+<span class="fc" id="L97">        dto.setMaintainermobile(&quot;13899998888&quot;);</span>
+
+<span class="fc" id="L99">        mockMvc.perform(post(ACCEPT_URL, 1, 300)</span>
+<span class="fc" id="L100">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L101">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L102">                .andExpect(status().isOk())</span>
+<span class="fc" id="L103">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L104">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景2：寄件服务接受成功 (Type=1) - 涉及Feign调用&quot;)
+    void acceptExpress_Success() throws Exception {
+        // 准备 Type=1 的数据
+<span class="fc" id="L110">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (100, 1, 200, 350206, '软件园二期', '用户小张', '13911112222', 0, 1, NOW())&quot;);
+
+        // Mock 外部物流接口返回
+<span class="fc" id="L115">        ExpressPo mockExpressPo = new ExpressPo();</span>
+<span class="fc" id="L116">        mockExpressPo.setId(888L);</span>
+<span class="fc" id="L117">        mockExpressPo.setBillCode(&quot;TestBillCode&quot;);</span>
+<span class="fc" id="L118">        InternalReturnObject&lt;ExpressPo&gt; mockRet = new InternalReturnObject&lt;&gt;(mockExpressPo);</span>
+
+<span class="fc" id="L120">        Mockito.reset(expressClient);</span>
+<span class="fc" id="L121">        Mockito.when(expressClient.createPackage(any(), any(), any(), any()))</span>
+<span class="fc" id="L122">                .thenReturn(mockRet);</span>
+
+<span class="fc" id="L124">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L125">        dto.setConfirm(true);</span>
+<span class="fc" id="L126">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L127">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+
+<span class="fc" id="L129">        mockMvc.perform(post(ACCEPT_URL, 1, 100)</span>
+<span class="fc" id="L130">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L131">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L132">                .andExpect(status().isOk())</span>
+<span class="fc" id="L133">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L134">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景3：寄件服务接受失败 - 远程物流模块异常&quot;)
+    void acceptExpress_RemoteFail() throws Exception {
+        // 准备 Type=1 的数据
+<span class="fc" id="L140">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (100, 1, 200, 350206, '软件园二期', '用户小张', '13911112222', 0, 1, NOW())&quot;);
+
+        // 模拟远程调用返回错误码
+<span class="fc" id="L145">        InternalReturnObject&lt;ExpressPo&gt; mockRet = new InternalReturnObject&lt;&gt;(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo(), &quot;物流模块异常&quot;);</span>
+
+<span class="fc" id="L147">        Mockito.reset(expressClient);</span>
+<span class="fc" id="L148">        Mockito.when(expressClient.createPackage(any(), any(), any(), any()))</span>
+<span class="fc" id="L149">                .thenReturn(mockRet);</span>
+
+<span class="fc" id="L151">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L152">        dto.setConfirm(true);</span>
+<span class="fc" id="L153">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L154">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+
+<span class="fc" id="L156">        mockMvc.perform(post(ACCEPT_URL, 1, 100)</span>
+<span class="fc" id="L157">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L158">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L159">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()));</span>
+<span class="fc" id="L160">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景4：寄件服务接受失败 - 远程返回成功但数据为空&quot;)
+    void acceptExpress_DataNull() throws Exception {
+        // 1. 确保数据与策略路由配置完全一致 (Type=1, Status=0)
+<span class="fc" id="L166">        jdbcTemplate.execute(&quot;DELETE FROM service_service WHERE id = 101&quot;); // 预防性清理</span>
+<span class="fc" id="L167">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, maintainer_id, shop_id, status, type, gmt_create) &quot; +</span>
+                &quot;VALUES (101, 1, 200, 0, 1, NOW())&quot;);
+
+        // 2. 构造 Mock 返回 (errno=0, data=null)
+<span class="fc" id="L171">        InternalReturnObject&lt;ExpressPo&gt; mockRet = new InternalReturnObject&lt;&gt;();</span>
+<span class="fc" id="L172">        mockRet.setErrno(0);</span>
+<span class="fc" id="L173">        mockRet.setData(null);</span>
+<span class="fc" id="L174">        mockRet.setErrmsg(&quot;No data returned&quot;);</span>
+
+<span class="fc" id="L176">        ExpressClient mock = AopTestUtils.getUltimateTargetObject(expressClient);</span>
+<span class="fc" id="L177">        Mockito.reset(mock);</span>
+<span class="fc" id="L178">        Mockito.when(mock.createPackage(any(), any(), any(), any())).thenReturn(mockRet);</span>
+
+        // 3. 执行请求
+<span class="fc" id="L181">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L182">        dto.setConfirm(true);</span>
+<span class="fc" id="L183">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L184">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+
+<span class="fc" id="L186">        mockMvc.perform(post(ACCEPT_URL, 1, 101)</span>
+<span class="fc" id="L187">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L188">                        .content(objectMapper.writeValueAsString(dto)))</span>
+                // 4. 此时应该通过路由，进入 Action 抛出 33 (REMOTE_SERVICE_FAIL)
+<span class="fc" id="L190">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo()));</span>
+<span class="fc" id="L191">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景5：接受失败 - 当前状态不允许接受 (status != UNACCEPT)&quot;)
+    void accept_StateNotAllow() throws Exception {
+        // 准备一个状态不为 0 (假设 0 是 UNACCEPT) 的数据，例如 status = 1
+<span class="fc" id="L197">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, status, type, gmt_create) &quot; +
+                &quot;VALUES (400, 1, 200, 1, 0, NOW())&quot;);
+
+<span class="fc" id="L201">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L202">        dto.setConfirm(true);</span>
+<span class="fc" id="L203">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L204">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+<span class="fc" id="L205">        mockMvc.perform(post(ACCEPT_URL, 1, 400)</span>
+<span class="fc" id="L206">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L207">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L208">                .andExpect(status().isOk()) // 业务异常通常返回 200 或相应错误码</span>
+<span class="fc" id="L209">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.STATENOTALLOW.getErrNo()));</span>
+<span class="fc" id="L210">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景6：接受失败 - 未找到对应策略 (Route returns null)&quot;)
+    void accept_NoStrategyFound() throws Exception {
+        // 准备一个在 @SpringBootTest 属性配置中没有定义过的 type
+        // 配置中只有 type=0 和 type=1，这里使用 type=9
+<span class="fc" id="L217">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, status, type, gmt_create) &quot; +
+                &quot;VALUES (500, 1, 200, 0, 9, NOW())&quot;);
+
+<span class="fc" id="L221">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L222">        dto.setConfirm(true);</span>
+<span class="fc" id="L223">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L224">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+<span class="fc" id="L225">        mockMvc.perform(post(ACCEPT_URL, 1, 500)</span>
+<span class="fc" id="L226">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L227">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L228">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.FIELD_NOTVALID.getErrNo()));</span>
+<span class="fc" id="L229">    }</span>
+    @Test
+    @DisplayName(&quot;场景7：服务单拒绝成功 (confirm = false)&quot;)
+    void acceptServiceOrder_Reject() throws Exception {
+        // 不需要准备数据库数据，因为 confirm 为 false 时不进入 service 层
+<span class="fc" id="L234">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L235">        dto.setConfirm(false); // 设置为拒绝</span>
+<span class="fc" id="L236">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L237">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+<span class="fc" id="L238">        mockMvc.perform(post(ACCEPT_URL, 1, 999)</span>
+<span class="fc" id="L239">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L240">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L241">                .andExpect(status().isOk())</span>
+<span class="fc" id="L242">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L243">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景8：用户Token为空时的默认值覆盖&quot;)
+    void acceptServiceOrder_UserTokenNull() throws Exception {
+        // 准备数据
+<span class="fc" id="L249">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, maintainer_id, shop_id, status, type, gmt_create) &quot; +</span>
+                &quot;VALUES (700, 1, 200, 0, 0, NOW())&quot;);
+
+<span class="fc" id="L252">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L253">        dto.setConfirm(true);</span>
+<span class="fc" id="L254">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L255">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+        // 在 mockMvc 请求时不传入 UserToken（或者确保拦截器没把 User 塞进去）
+        // 此时 Controller 内部会执行 user = new UserToken(); user.setId(1L);
+<span class="fc" id="L258">        mockMvc.perform(post(ACCEPT_URL, 1, 700)</span>
+<span class="fc" id="L259">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L260">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L261">                .andExpect(status().isOk())</span>
+<span class="fc" id="L262">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L263">    }</span>
+
+    @Test
+    @DisplayName(&quot;验收场景9：系统内部错误 (触发 catch Exception)&quot;)
+    void acceptServiceOrde_InternalError() throws Exception {
+        // 准备 Type=1 的数据
+<span class="fc" id="L269">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (100, 1, 200, 350206, '软件园二期', '用户小张', '13911112222', 0, 1, NOW())&quot;);
+
+        // 2. 关键：使用正确的匹配器处理基本类型，防止 NPE 和打桩失败
+        // 使用 doThrow 语法对 Spy 进行打桩
+<span class="fc" id="L275">        Mockito.doThrow(new RuntimeException(&quot;Database Connection Timeout&quot;))</span>
+<span class="fc" id="L276">                .when(serviceOrderService).acceptServiceOrder(</span>
+<span class="fc" id="L277">                        anyLong(),      // did (Long)</span>
+<span class="fc" id="L278">                        anyLong(),      // id (Long)</span>
+<span class="fc" id="L279">                        any()           // user (UserToken)</span>
+                );
+
+<span class="fc" id="L282">        ServiceOrderAcceptDto dto = new ServiceOrderAcceptDto();</span>
+<span class="fc" id="L283">        dto.setConfirm(true);</span>
+<span class="fc" id="L284">        dto.setMaintainername(&quot;测试员工&quot;);</span>
+<span class="fc" id="L285">        dto.setMaintainermobile(&quot;13812345678&quot;);</span>
+        // 3. 执行请求并验证
+<span class="fc" id="L287">        mockMvc.perform(post(ACCEPT_URL, 1, 2005)</span>
+<span class="fc" id="L288">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L289">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L290">                .andExpect(status().isInternalServerError())</span>
+<span class="fc" id="L291">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.INTERNAL_SERVER_ERR.getErrNo()));</span>
+
+        // 4. 执行完后必须重置，否则会污染后续可能的测试运行
+<span class="fc" id="L294">        Mockito.reset(serviceOrderService);</span>
+<span class="fc" id="L295">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

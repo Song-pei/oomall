@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceOrderService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.service</a> &gt; <span class="el_source">ServiceOrderService.java</span></div><h1>ServiceOrderService.java</h1><pre class="source lang-java linenums">//School of Informatics Xiamen University, GPL-3.0 license
+package cn.edu.xmu.oomall.service.service;
+
+import cn.edu.xmu.javaee.core.util.CloneFactory;
+import cn.edu.xmu.javaee.core.exception.BusinessException;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Objects;
+
+@Service
+@Transactional(propagation = Propagation.REQUIRED)
+@RequiredArgsConstructor
+<span class="fc" id="L24">@Slf4j</span>
+public class ServiceOrderService {
+    private final StrategyRouter strategyRouter;
+    private final ServiceOrderDao serviceOrderDao;
+    
+    /*
+    * 创建服务单
+    * */
+    public ServiceOrder createServiceOrder(ServiceOrder serviceOrder, UserToken user) {
+        try {
+
+<span class="nc" id="L35">            this.serviceOrderDao.build(serviceOrder);</span>
+<span class="nc" id="L36">            log.debug(&quot;serviceOrder: serviceOrder = {}&quot;, serviceOrder);</span>
+<span class="nc" id="L37">            return serviceOrder.create(user);</span>
+
+<span class="nc" id="L39">        } catch (BusinessException e) {</span>
+<span class="nc" id="L40">            log.error(&quot;创建服务单失败，参数: {}&quot;, serviceOrder, e);</span>
+<span class="nc" id="L41">            throw new BusinessException(ReturnNo.SERVICE_ORDER_CREATE_FAILED);</span>
+        }
+    }
+    /*
+    * 接受服务单
+    * auth:Mingyu Li
+    * */
+    public void acceptServiceOrder(Long did,long id, UserToken user) {
+<span class="fc" id="L49">        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);</span>
+<span class="fc" id="L50">        serviceOrder.accept(user,strategyRouter);</span>
+
+
+<span class="fc" id="L53">        log.info(&quot;[Service] 接受完成: boId={}&quot;, id);</span>
+<span class="fc" id="L54">    }</span>
+
+    public void finish(Long did, long id, String result, UserToken user){
+<span class="fc" id="L57">        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);</span>
+
+<span class="pc bpc" id="L59" title="1 of 4 branches missed.">        if (!serviceOrder.getMaintainerId().equals(did) &amp;&amp; !serviceOrder.getShopId().equals(did)) {</span>
+<span class="fc" id="L60">            throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, &quot;无权操作该服务单&quot;);</span>
+        }
+
+<span class="fc" id="L63">        serviceOrder.finish(result, user, strategyRouter);</span>
+<span class="fc" id="L64">        log.info(&quot;[Service] 完成: boId={}&quot;, id);</span>
+<span class="fc" id="L65">    }</span>
+    /*
+    * 服务商验收包裹
+    * */
+    public void receiveExpress(Long did,long id,String result, boolean accepted,UserToken user){
+<span class="fc" id="L70">        ServiceOrder serviceOrder =  serviceOrderDao.findById(id);</span>
+<span class="fc" id="L71">        serviceOrder.receiveExpress(result,accepted,user,strategyRouter);</span>
+<span class="fc" id="L72">        log.info(&quot;[Service] 完成: boId={}&quot;, id);</span>
+<span class="fc" id="L73">    }</span>
+    /*
+     * 取消服务单
+     * */
+    public void cancelServiceOrder(Long id, UserToken user) {
+<span class="fc" id="L78">        ServiceOrder serviceOrder = serviceOrderDao.findById(id);</span>
+<span class="fc" id="L79">        serviceOrder.cancel(user,strategyRouter);</span>
+
+<span class="fc" id="L81">        log.info(&quot;[Service] 取消完成: boId={}&quot;, id);</span>
+<span class="fc" id="L82">    }</span>
+
+    /**
+     * 根据 ID 查询服务单
+     * * @param shopId 商铺 ID（用于权限校验，确保当前商铺只能访问自己的单据）
+     * @param id 服务单 ID
+     * @return 完整填充的领域对象 ServiceOrder
+     * @throws BusinessException 
+     * 1. 资源不存在 (RESOURCE_ID_NOTEXIST, 对应 HTTP 404)
+     * 2. 权限不足 (RESOURCE_ID_OUTSCOPE, 对应 HTTP 403)
+     */
+    @Transactional(readOnly = true)
+    public ServiceOrder findById(Long shopId, Long id) {
+<span class="fc" id="L95">        log.debug(&quot;findById: shopId = {}, id = {}&quot;, shopId, id);</span>
+
+        // 1. 获取领域对象 (BO)
+<span class="fc" id="L98">        ServiceOrder serviceOrder = this.serviceOrderDao.findById(id);</span>
+
+        // 2. 严格的存在性校验
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (Objects.isNull(serviceOrder)) {</span>
+<span class="nc" id="L102">            log.error(&quot;findById: 服务单不存在, id = {}&quot;, id);</span>
+            // 仿照 AdminRegionController 使用标准错误码和 String.format 填充消息
+<span class="nc" id="L104">            throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, </span>
+<span class="nc" id="L105">                    String.format(ReturnNo.RESOURCE_ID_NOTEXIST.getMessage(), &quot;服务单&quot;, id));</span>
+        }
+
+        // 3. 安全性校验：防止水平越权
+        // 只有当明确传入 shopId 时才校验，这允许管理员接口（shopId 为空）复用此方法
+<span class="pc bpc" id="L110" title="1 of 4 branches missed.">        if (Objects.nonNull(shopId) &amp;&amp; !Objects.equals(serviceOrder.getShopId(), shopId)) {</span>
+<span class="fc" id="L111">            log.warn(&quot;findById: 越权访问尝试! serviceOrderId={}, requestedShopId={}, actualShopId={}&quot;, </span>
+<span class="fc" id="L112">                    id, shopId, serviceOrder.getShopId());</span>
+            // 抛出 403 异常，消息内容对齐项目规范
+<span class="fc" id="L114">            throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE,</span>
+<span class="fc" id="L115">                    String.format(ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage(), &quot;服务单&quot;, id, shopId));</span>
+        }
+
+<span class="fc" id="L118">        return serviceOrder;</span>
+    }
+        /*
+     * 维修师父退回服务单
+     * */
+    public void backServiceOrder(Long did, long id, String result, UserToken user) {
+<span class="fc" id="L124">        ServiceOrder serviceOrder = serviceOrderDao.findById(id);</span>
+<span class="fc" id="L125">        serviceOrder.setResult(result);</span>
+<span class="fc" id="L126">        serviceOrder.backServiceOrder(user);</span>
+<span class="fc" id="L127">        log.info(&quot;[Service] 维修师傅退回待派工完成: boId={}&quot;, id);</span>
+<span class="fc" id="L128">            }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

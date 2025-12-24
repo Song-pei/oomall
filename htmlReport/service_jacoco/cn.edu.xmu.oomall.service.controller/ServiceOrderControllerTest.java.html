@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceOrderControllerTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.controller</a> &gt; <span class="el_source">ServiceOrderControllerTest.java</span></div><h1>ServiceOrderControllerTest.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.controller;
+
+import cn.edu.xmu.javaee.core.model.InternalReturnObject;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.mapper.RedisUtil;
+import cn.edu.xmu.oomall.service.ServiceApplication;
+import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
+import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderFinishDto;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.mapper.ServiceOrderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.ArgumentMatchers.*;
+
+@SpringBootTest(classes = ServiceApplication.class,
+        properties = {
+                &quot;spring.cloud.nacos.config.enabled=false&quot;,
+                &quot;spring.cloud.nacos.discovery.enabled=false&quot;,
+                &quot;ser-vice.strategies[0].type=0&quot;,
+                &quot;ser-vice.strategies[0].status=3&quot;,
+                &quot;ser-vice.strategies[0].opt=FINISH&quot;,
+                &quot;ser-vice.strategies[0].bean-name=simpleFinishAction&quot;,
+                &quot;ser-vice.strategies[1].type=1&quot;,
+                &quot;ser-vice.strategies[1].status=3&quot;,
+                &quot;ser-vice.strategies[1].opt=FINISH&quot;,
+                &quot;ser-vice.strategies[1].bean-name=expressFinishAction&quot;
+        })
+@AutoConfigureMockMvc
+@Transactional(propagation = Propagation.REQUIRED)
+@Rollback(true)
+@DisplayName(&quot;服务单完成接口集成测试&quot;)
+<span class="fc" id="L54">class ServiceOrderControllerTest {</span>
+
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ServiceOrderPoMapper serviceOrderPoMapper;
+    @Autowired private ObjectMapper objectMapper;
+    @PersistenceContext private EntityManager entityManager;
+
+    @MockitoBean private ExpressClient expressClient;
+    @MockitoBean private RedisUtil redisUtil;
+
+    private static final String FINISH_URL = &quot;/maintainers/{did}/services/{id}/finish&quot;;
+<span class="fc" id="L65">    private final Long MAINTAINER_ID = 1L;</span>
+<span class="fc" id="L66">    private final Long SHOP_ID = 100L;</span>
+
+    private ServiceOrderPo createValidPo(Byte type, Byte status) {
+<span class="fc" id="L69">        ServiceOrderPo po = new ServiceOrderPo();</span>
+<span class="fc" id="L70">        po.setType(type);</span>
+<span class="fc" id="L71">        po.setStatus(status);</span>
+<span class="fc" id="L72">        po.setMaintainerId(MAINTAINER_ID);</span>
+<span class="fc" id="L73">        po.setShopId(SHOP_ID);</span>
+<span class="fc" id="L74">        po.setRegionId(1101L);</span>
+<span class="fc" id="L75">        po.setAddress(&quot;厦门大学信息学院&quot;);</span>
+<span class="fc" id="L76">        po.setConsignee(&quot;sean&quot;);</span>
+<span class="fc" id="L77">        po.setMobile(&quot;13800000000&quot;);</span>
+<span class="fc" id="L78">        po.setGmtCreate(LocalDateTime.now());</span>
+<span class="fc" id="L79">        ServiceOrderPo saved = serviceOrderPoMapper.saveAndFlush(po);</span>
+<span class="fc" id="L80">        entityManager.clear();</span>
+<span class="fc" id="L81">        return saved;</span>
+    }
+
+    @Test
+    @DisplayName(&quot;场景1：上门维修(type=0)成功完成&quot;)
+    void finishOnSite_Success() throws Exception {
+<span class="fc" id="L87">        ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);</span>
+<span class="fc" id="L88">        ServiceOrderFinishDto dto = new ServiceOrderFinishDto();</span>
+<span class="fc" id="L89">        dto.setResult(&quot;维修完成&quot;);</span>
+
+<span class="fc" id="L91">        this.mockMvc.perform(MockMvcRequestBuilders.post(FINISH_URL, MAINTAINER_ID, po.getId())</span>
+<span class="fc" id="L92">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L93">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L94">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L95">                .andExpect(MockMvcResultMatchers.status().isOk())</span>
+<span class="fc" id="L96">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())));</span>
+<span class="fc" id="L97">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景2：寄件维修(type=1)成功完成&quot;)
+    void finishExpress_Success() throws Exception {
+<span class="fc" id="L102">        ServiceOrderPo po = createValidPo((byte) 1, ServiceOrder.REPAIRING);</span>
+
+<span class="fc" id="L104">        ExpressPo mockExpress = new ExpressPo();</span>
+<span class="fc" id="L105">        mockExpress.setId(999L);</span>
+<span class="fc" id="L106">        mockExpress.setBillCode(&quot;SF_123456&quot;);</span>
+<span class="fc" id="L107">        InternalReturnObject&lt;ExpressPo&gt; ret = new InternalReturnObject&lt;&gt;(mockExpress);</span>
+
+        // ✅ 核心修正：使用 any() 匹配所有后续参数，确保 Mock 绝对生效
+<span class="fc" id="L110">        Mockito.when(expressClient.createPackage(</span>
+<span class="fc" id="L111">                eq(SHOP_ID),</span>
+<span class="fc" id="L112">                any(ExpressDto.class),</span>
+<span class="fc" id="L113">                any(), // 对应 String user</span>
+<span class="fc" id="L114">                any()  // 对应 Integer userLevel</span>
+<span class="fc" id="L115">        )).thenReturn(ret);</span>
+
+<span class="fc" id="L117">        ServiceOrderFinishDto dto = new ServiceOrderFinishDto();</span>
+<span class="fc" id="L118">        dto.setResult(&quot;已寄出维修件&quot;);</span>
+
+<span class="fc" id="L120">        this.mockMvc.perform(MockMvcRequestBuilders.post(FINISH_URL, MAINTAINER_ID, po.getId())</span>
+<span class="fc" id="L121">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L122">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L123">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L124">                .andExpect(MockMvcResultMatchers.status().isOk())</span>
+<span class="fc" id="L125">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())));</span>
+<span class="fc" id="L126">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景3：远程服务异常&quot;)
+    void finishExpress_FeignException() throws Exception {
+<span class="fc" id="L131">        ServiceOrderPo po = createValidPo((byte) 1, ServiceOrder.REPAIRING);</span>
+
+        // ✅ 使用 any() 确保异常抛出逻辑被触发
+<span class="fc" id="L134">        Mockito.when(expressClient.createPackage(</span>
+<span class="fc" id="L135">                anyLong(),</span>
+<span class="fc" id="L136">                any(ExpressDto.class),</span>
+<span class="fc" id="L137">                any(),</span>
+<span class="fc" id="L138">                any()</span>
+<span class="fc" id="L139">        )).thenThrow(new RuntimeException(&quot;Connect Timeout&quot;));</span>
+
+<span class="fc" id="L141">        ServiceOrderFinishDto dto = new ServiceOrderFinishDto();</span>
+<span class="fc" id="L142">        dto.setResult(&quot;测试异常场景&quot;);</span>
+
+<span class="fc" id="L144">        this.mockMvc.perform(MockMvcRequestBuilders.post(FINISH_URL, MAINTAINER_ID, po.getId())</span>
+<span class="fc" id="L145">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L146">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L147">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L148">                .andExpect(MockMvcResultMatchers.status().isInternalServerError())</span>
+<span class="fc" id="L149">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo())));</span>
+<span class="fc" id="L150">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景5：越权访问&quot;)
+    void finish_Forbidden() throws Exception {
+<span class="fc" id="L155">        ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);</span>
+<span class="fc" id="L156">        ServiceOrderFinishDto dto = new ServiceOrderFinishDto();</span>
+<span class="fc" id="L157">        dto.setResult(&quot;越权访问测试&quot;);</span>
+
+<span class="fc" id="L159">        this.mockMvc.perform(MockMvcRequestBuilders.post(FINISH_URL, 99L, po.getId())</span>
+<span class="fc" id="L160">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L161">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L162">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L163">                .andExpect(MockMvcResultMatchers.status().isForbidden())</span>
+<span class="fc" id="L164">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.RESOURCE_ID_OUTSCOPE.getErrNo())));</span>
+<span class="fc" id="L165">    }</span>
+
+    @Test
+    @DisplayName(&quot;场景6：参数校验失败&quot;)
+    void finish_InvalidParam() throws Exception {
+<span class="fc" id="L170">        ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);</span>
+<span class="fc" id="L171">        ServiceOrderFinishDto dto = new ServiceOrderFinishDto();</span>
+<span class="fc" id="L172">        dto.setResult(&quot;   &quot;);</span>
+
+<span class="fc" id="L174">        this.mockMvc.perform(MockMvcRequestBuilders.post(FINISH_URL, MAINTAINER_ID, po.getId())</span>
+<span class="fc" id="L175">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L176">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L177">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L178">                .andExpect(MockMvcResultMatchers.status().isBadRequest())</span>
+<span class="fc" id="L179">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(3)));</span>
+<span class="fc" id="L180">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CancelActionTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.service.strategy.impl.cancel</a> &gt; <span class="el_source">CancelActionTest.java</span></div><h1>CancelActionTest.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.service.strategy.impl.cancel;
+
+import cn.edu.xmu.javaee.core.model.InternalReturnObject;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.oomall.service.ServiceApplication;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest(classes = ServiceApplication.class)
+@AutoConfigureMockMvc
+@Transactional
+@DisplayName(&quot;服务单取消接口综合测试&quot;)
+<span class="fc" id="L34">class CancelActionTest {</span>
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @MockitoBean
+    private ExpressClient expressClient;
+
+<span class="fc" id="L48">    private final Long SHOP_ID = 200L;</span>
+<span class="fc" id="L49">    private final Long MAINTAINER_ID = 1L;</span>
+
+    @BeforeEach
+    void clean() {
+<span class="fc" id="L53">        jdbcTemplate.execute(&quot;DELETE FROM service_service WHERE id IN (500,600,700,800,801)&quot;);</span>
+<span class="fc" id="L54">        jdbcTemplate.execute(&quot;DELETE FROM service_provider WHERE id = &quot; + MAINTAINER_ID);</span>
+<span class="fc" id="L55">    }</span>
+
+    /** 场景1：上门/待接受(UNACCEPT=0) 简单取消，期望转为 CANCEL=4 */
+    @Test
+    void simpleCancel_success() throws Exception {
+<span class="fc" id="L60">        Long orderId = 700L;</span>
+<span class="fc" id="L61">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + SHOP_ID + &quot;, 0, 0, 350206, '测试地址', '小张', '13955556666', NOW())&quot;);
+
+<span class="fc" id="L65">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L66">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L67">                .andExpect(status().isOk())</span>
+<span class="fc" id="L68">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())));</span>
+
+<span class="fc" id="L70">        entityManager.flush();</span>
+<span class="fc" id="L71">        entityManager.clear();</span>
+<span class="fc" id="L72">        Integer statusVal = jdbcTemplate.queryForObject(</span>
+                &quot;SELECT status FROM service_service WHERE id = ?&quot;, Integer.class, orderId);
+<span class="fc" id="L74">        org.junit.jupiter.api.Assertions.assertEquals(4, statusVal);</span>
+<span class="fc" id="L75">    }</span>
+
+    /** 场景2：寄件维修(type=1, REPAIRING=3) 取消成功，Feign createPackage 成功 */
+    @Test
+    void expressCancel_success() throws Exception {
+<span class="fc" id="L80">        Long orderId = 500L;</span>
+        // 服务商信息（寄件取消需要寄件地址）
+<span class="fc" id="L82">        jdbcTemplate.execute(&quot;INSERT INTO service_provider &quot; +</span>
+                &quot;(id, name, consignee, address, mobile, region_id, status, gmt_create) &quot; +
+                &quot;VALUES (&quot; + MAINTAINER_ID + &quot;, '维修中心', '王经理', '厦门市软件园', '13811112222', 350203, 1, NOW())&quot;);
+
+<span class="fc" id="L86">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + MAINTAINER_ID + &quot;, &quot; + SHOP_ID +
+                &quot;, 350206, '用户家庭地址', '小张', '13955556666', 3, 1, NOW())&quot;);
+
+<span class="fc" id="L91">        ExpressPo mockExpress = new ExpressPo();</span>
+<span class="fc" id="L92">        mockExpress.setId(999L);</span>
+<span class="fc" id="L93">        Mockito.when(expressClient.createPackage(eq(SHOP_ID), any(), any(), any()))</span>
+<span class="fc" id="L94">                .thenReturn(new InternalReturnObject&lt;&gt;(mockExpress));</span>
+
+<span class="fc" id="L96">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L97">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L98">                .andExpect(status().isOk())</span>
+<span class="fc" id="L99">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())));</span>
+<span class="fc" id="L100">    }</span>
+
+    /** 场景3：寄件维修(type=1, REPAIRING=3) 取消失败，Feign 返回 REMOTE_SERVICE_FAIL */
+    @Test
+    void expressCancel_remoteFail() throws Exception {
+<span class="fc" id="L105">        Long orderId = 800L;</span>
+<span class="fc" id="L106">        jdbcTemplate.execute(&quot;INSERT INTO service_provider &quot; +</span>
+                &quot;(id, name, consignee, address, mobile, region_id, status, gmt_create) &quot; +
+                &quot;VALUES (&quot; + MAINTAINER_ID + &quot;, '维修中心', '王经理', '厦门市软件园', '13811112222', 350203, 1, NOW())&quot;);
+
+<span class="fc" id="L110">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + MAINTAINER_ID + &quot;, &quot; + SHOP_ID +
+                &quot;, 350206, '用户家庭地址', '小张', '13955556666', 3, 1, NOW())&quot;);
+
+<span class="fc" id="L115">        Mockito.when(expressClient.createPackage(any(), any(), any(), any()))</span>
+<span class="fc" id="L116">                .thenReturn(new InternalReturnObject&lt;&gt;(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo(), &quot;物流模块忙&quot;));</span>
+
+<span class="fc" id="L118">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L119">                        .contentType(MediaType.APPLICATION_JSON))</span>
+                // 当前控制器把 BusinessException 兜底成 INTERNAL_SERVER_ERR
+<span class="fc" id="L121">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo())));</span>
+<span class="fc" id="L122">    }</span>
+
+    /** 场景4：寄件待收件(type=1, UNCHECK=2) 拦截运单成功，cancelPackage 成功 */
+    @Test
+    void interceptCancel_success() throws Exception {
+<span class="fc" id="L127">        Long orderId = 600L;</span>
+<span class="fc" id="L128">        Long expressId = 8888L;</span>
+
+<span class="fc" id="L130">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + SHOP_ID + &quot;, 2, 1, &quot; + expressId +
+                &quot;, 350206, '用户地址', '小张', '13955556666', NOW())&quot;);
+
+<span class="fc" id="L135">        Mockito.when(expressClient.cancelPackage(eq(SHOP_ID), eq(expressId), any(), any()))</span>
+<span class="fc" id="L136">                .thenReturn(new InternalReturnObject&lt;&gt;(new ExpressPo()));</span>
+
+<span class="fc" id="L138">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L139">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L140">                .andExpect(status().isOk())</span>
+<span class="fc" id="L141">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())));</span>
+<span class="fc" id="L142">    }</span>
+
+    /** 场景5：寄件待收件拦截失败，cancelPackage 返回 REMOTE_SERVICE_FAIL */
+    @Test
+    void interceptCancel_remoteFail() throws Exception {
+<span class="fc" id="L147">        Long orderId = 801L;</span>
+<span class="fc" id="L148">        Long expressId = 8889L;</span>
+
+<span class="fc" id="L150">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + SHOP_ID + &quot;, 2, 1, &quot; + expressId +
+                &quot;, 350206, '用户地址', '小张', '13955556666', NOW())&quot;);
+
+<span class="fc" id="L155">        Mockito.when(expressClient.cancelPackage(any(), any(), any(), any()))</span>
+<span class="fc" id="L156">                .thenReturn(new InternalReturnObject&lt;&gt;(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo(), &quot;运单已签收，无法拦截&quot;));</span>
+
+<span class="fc" id="L158">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L159">                        .contentType(MediaType.APPLICATION_JSON))</span>
+                // 当前控制器兜底为 INTERNAL_SERVER_ERR
+<span class="fc" id="L161">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo())));</span>
+<span class="fc" id="L162">    }</span>
+
+    /** 场景6：状态不允许 - 已完成 FINISH=5 */
+    @Test
+    void cancel_StateNotAllow_WhenFinished() throws Exception {
+<span class="fc" id="L167">        Long orderId = 901L;</span>
+<span class="fc" id="L168">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + SHOP_ID + &quot;, 5, 0, 350206, '已完成地址', '用户B', '13900000001', NOW())&quot;);
+
+<span class="fc" id="L172">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L173">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L174">                .andExpect(status().isOk())</span>
+<span class="fc" id="L175">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.STATENOTALLOW.getErrNo())));</span>
+<span class="fc" id="L176">    }</span>
+
+    /** 场景7：未找到取消策略 (type 未配置) */
+    @Test
+    void cancel_NoStrategyFound() throws Exception {
+<span class="fc" id="L181">        Long orderId = 902L;</span>
+<span class="fc" id="L182">        jdbcTemplate.execute(&quot;INSERT INTO service_service &quot; +</span>
+                &quot;(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) &quot; +
+                &quot;VALUES (&quot; + orderId + &quot;, &quot; + SHOP_ID + &quot;, 0, 9, 350206, '未配置策略地址', '用户C', '13900000002', NOW())&quot;);
+
+<span class="fc" id="L186">        mockMvc.perform(post(&quot;/maintainers/{did}/services/{id}/cancel&quot;, MAINTAINER_ID, orderId)</span>
+<span class="fc" id="L187">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L188">                .andExpect(status().isBadRequest())</span>
+<span class="fc" id="L189">                .andExpect(jsonPath(&quot;$.errno&quot;, is(ReturnNo.FIELD_NOTVALID.getErrNo())));</span>
+<span class="fc" id="L190">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

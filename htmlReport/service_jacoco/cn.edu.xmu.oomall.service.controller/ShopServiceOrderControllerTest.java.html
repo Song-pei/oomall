@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ShopServiceOrderControllerTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.controller</a> &gt; <span class="el_source">ShopServiceOrderControllerTest.java</span></div><h1>ShopServiceOrderControllerTest.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.controller;
+
+import cn.edu.xmu.javaee.core.mapper.RedisUtil;
+import cn.edu.xmu.javaee.core.model.InternalReturnObject;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.oomall.service.ServiceApplication;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.mapper.ServiceOrderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
+import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
+import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+
+@SpringBootTest(classes = ServiceApplication.class,
+        properties = {
+                &quot;spring.cloud.nacos.config.enabled=false&quot;,
+                &quot;spring.cloud.nacos.discovery.enabled=false&quot;,
+                &quot;ser-vice.strategies[0].type=0&quot;,
+                &quot;ser-vice.strategies[0].status=3&quot;,
+                &quot;ser-vice.strategies[0].opt=FINISH&quot;,
+                &quot;ser-vice.strategies[0].bean-name=simpleFinishAction&quot;,
+                &quot;ser-vice.strategies[1].type=1&quot;,
+                &quot;ser-vice.strategies[1].status=3&quot;,
+                &quot;ser-vice.strategies[1].opt=FINISH&quot;,
+                &quot;ser-vice.strategies[1].bean-name=expressFinishAction&quot;
+        })
+@AutoConfigureMockMvc
+@Transactional(propagation = Propagation.REQUIRED)
+@Rollback(true)
+@DisplayName(&quot;商铺服务单查询接口测试&quot;)
+<span class="fc" id="L54">public class ShopServiceOrderControllerTest {</span>
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ServiceOrderPoMapper serviceOrderPoMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private ExpressClient expressClient;
+
+    @MockitoBean
+    private RedisUtil redisUtil;
+
+<span class="fc" id="L74">    private final String GET_URL = &quot;/shops/{did}/services/{id}&quot;;</span>
+<span class="fc" id="L75">    private final Long SHOP_ID = 100L;</span>
+
+    /**
+     * ✅ 在每个测试前重置 Mock 状态
+     */
+    @BeforeEach
+    void setUp() {
+<span class="fc" id="L82">        Mockito.reset(expressClient, redisUtil);</span>
+        
+        // ✅ 默认 Mock：createPackage 返回成功
+<span class="fc" id="L85">        ExpressPo mockExpressPo = new ExpressPo();</span>
+<span class="fc" id="L86">        mockExpressPo.setId(999L);</span>
+<span class="fc" id="L87">        mockExpressPo.setBillCode(&quot;SF_123456&quot;);</span>
+        
+<span class="fc" id="L89">        InternalReturnObject&lt;ExpressPo&gt; successResult = new InternalReturnObject&lt;&gt;();</span>
+<span class="fc" id="L90">        successResult.setErrno(0);</span>
+<span class="fc" id="L91">        successResult.setData(mockExpressPo);</span>
+        
+<span class="fc" id="L93">        Mockito.when(expressClient.createPackage(</span>
+<span class="fc" id="L94">                Mockito.anyLong(),</span>
+<span class="fc" id="L95">                Mockito.any(ExpressDto.class),</span>
+<span class="fc" id="L96">                Mockito.anyString(),</span>
+<span class="fc" id="L97">                Mockito.anyInt()</span>
+<span class="fc" id="L98">        )).thenReturn(successResult);</span>
+<span class="fc" id="L99">    }</span>
+
+    private ServiceOrderPo createPo(Long id, Long shopId, Byte status, String result, Long expressId) {
+<span class="fc" id="L102">        ServiceOrderPo po = new ServiceOrderPo();</span>
+<span class="fc" id="L103">        po.setShopId(shopId);</span>
+<span class="fc" id="L104">        po.setStatus(status);</span>
+<span class="fc" id="L105">        po.setResult(result);</span>
+<span class="fc" id="L106">        po.setExpressId(expressId);</span>
+<span class="fc" id="L107">        po.setConsignee(&quot;张三&quot;);</span>
+<span class="fc" id="L108">        po.setRegionId(1101L);</span>
+<span class="fc" id="L109">        po.setAddress(&quot;厦门大学信息学院&quot;);</span>
+<span class="fc" id="L110">        po.setMobile(&quot;13900139000&quot;);</span>
+<span class="fc" id="L111">        po.setType((byte) 0);</span>
+<span class="fc" id="L112">        po.setGmtCreate(LocalDateTime.now());</span>
+<span class="fc" id="L113">        ServiceOrderPo saved = serviceOrderPoMapper.saveAndFlush(po);</span>
+<span class="fc" id="L114">        entityManager.clear();</span>
+<span class="fc" id="L115">        return saved;</span>
+    }
+
+    // ========== 查询接口测试 ==========
+
+    @Test
+    @DisplayName(&quot;用例1: 查询正常的服务单 - 成功&quot;)
+    void getServiceOrderById_Success() throws Exception {
+<span class="fc" id="L123">        ServiceOrderPo po = createPo(1001L, SHOP_ID, ServiceOrder.REPAIRING, null, null);</span>
+
+<span class="fc" id="L125">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, po.getId())</span>
+<span class="fc" id="L126">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L127">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L128">                .andExpect(MockMvcResultMatchers.status().isOk())</span>
+<span class="fc" id="L129">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.OK.getErrNo())))</span>
+<span class="fc" id="L130">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.id&quot;, is(po.getId().intValue())))</span>
+<span class="fc" id="L131">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.shopId&quot;, is(100)))</span>
+<span class="fc" id="L132">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.consignee&quot;, is(&quot;张三&quot;)));</span>
+<span class="fc" id="L133">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例2: 查询已完成的服务单 - 成功 (验证运单号)&quot;)
+    void getServiceOrderById_Finished() throws Exception {
+<span class="fc" id="L138">        ServiceOrderPo po = createPo(1002L, SHOP_ID, ServiceOrder.FINISH, &quot;维修完成，已寄回&quot;, 888L);</span>
+
+<span class="fc" id="L140">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, po.getId())</span>
+<span class="fc" id="L141">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L142">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L143">                .andExpect(MockMvcResultMatchers.status().isOk())</span>
+<span class="fc" id="L144">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.status&quot;, is((int) ServiceOrder.FINISH)))</span>
+<span class="fc" id="L145">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.expressId&quot;, is(888)));</span>
+<span class="fc" id="L146">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例3: 查询不属于该商铺的服务单 - 权限不足 (errno 17)&quot;)
+    void getServiceOrderById_Forbidden() throws Exception {
+<span class="fc" id="L151">        ServiceOrderPo po = createPo(1003L, 200L, ServiceOrder.REPAIRING, null, null);</span>
+
+<span class="fc" id="L153">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, po.getId())</span>
+<span class="fc" id="L154">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L155">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L156">                .andExpect(MockMvcResultMatchers.status().isForbidden())</span>
+<span class="fc" id="L157">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.RESOURCE_ID_OUTSCOPE.getErrNo())));</span>
+<span class="fc" id="L158">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例4: 查询不存在的服务单 - 资源不存在 (errno 4)&quot;)
+    void getServiceOrderById_NotFound() throws Exception {
+<span class="fc" id="L163">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, 99999L)</span>
+<span class="fc" id="L164">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L165">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L166">                .andExpect(MockMvcResultMatchers.status().isNotFound())</span>
+<span class="fc" id="L167">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.errno&quot;, is(ReturnNo.RESOURCE_ID_NOTEXIST.getErrNo())));</span>
+<span class="fc" id="L168">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例5: 查询待接受的服务单 - 验证 result 为空&quot;)
+    void getServiceOrderById_Unaccepted() throws Exception {
+<span class="fc" id="L173">        ServiceOrderPo po = createPo(1004L, SHOP_ID, ServiceOrder.UNCHECK, null, null);</span>
+
+<span class="fc" id="L175">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, po.getId())</span>
+<span class="fc" id="L176">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L177">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L178">                .andExpect(MockMvcResultMatchers.status().isOk())</span>
+<span class="fc" id="L179">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.status&quot;, is((int) ServiceOrder.UNCHECK)))</span>
+                // ✅ 修正：使用 doesNotExist() 而非 value(nullValue())
+<span class="fc" id="L181">                .andExpect(MockMvcResultMatchers.jsonPath(&quot;$.data.result&quot;).doesNotExist());</span>
+<span class="fc" id="L182">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例8: 非法的 ID 类型 - 400&quot;)
+    void getServiceOrderById_InvalidId() throws Exception {
+<span class="fc" id="L187">        this.mockMvc.perform(MockMvcRequestBuilders.get(GET_URL, SHOP_ID, &quot;abc&quot;)</span>
+<span class="fc" id="L188">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L189">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L190">                .andExpect(MockMvcResultMatchers.status().isBadRequest());</span>
+<span class="fc" id="L191">    }</span>
+
+    @Test
+    @DisplayName(&quot;用例7: 错误的 HTTP 方法 - 405&quot;)
+    void getServiceOrderById_WrongMethod() throws Exception {
+<span class="fc" id="L196">        this.mockMvc.perform(MockMvcRequestBuilders.post(GET_URL, SHOP_ID, 1001L)</span>
+<span class="fc" id="L197">                        .header(&quot;authorization&quot;, &quot;Bearer test-token&quot;)</span>
+<span class="fc" id="L198">                        .contentType(MediaType.APPLICATION_JSON))</span>
+<span class="fc" id="L199">                .andExpect(MockMvcResultMatchers.status().isMethodNotAllowed());</span>
+<span class="fc" id="L200">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

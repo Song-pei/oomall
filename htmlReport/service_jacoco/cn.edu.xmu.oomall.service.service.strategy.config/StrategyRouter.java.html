@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StrategyRouter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.service.strategy.config</a> &gt; <span class="el_source">StrategyRouter.java</span></div><h1>StrategyRouter.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.service.strategy.config;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
+
+
+/**
+ * 售后策略路由器
+ */
+
+<span class="fc" id="L17">@Slf4j</span>
+@Component
+<span class="fc" id="L19">public class StrategyRouter {</span>
+
+    @Resource
+    private ApplicationContext applicationContext;
+
+    @Resource
+    private StrategyProperties strategyProperties;
+
+    // 一个通用的 Map，Value 存 Object
+<span class="fc" id="L28">    private final Map&lt;StrategyKey, Object&gt; strategyMap = new HashMap&lt;&gt;();</span>
+
+    @PostConstruct
+    public void init() {
+<span class="fc" id="L32">        log.info(&quot;======== 开始加载服务策略路由配置 ========&quot;);</span>
+
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (strategyProperties.getStrategies() == null) return;</span>
+
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        for (StrategyProperties.Rule rule : strategyProperties.getStrategies()) {</span>
+<span class="fc" id="L37">            String beanName = rule.getBeanName();</span>
+
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">            if (!applicationContext.containsBean(beanName)) {</span>
+<span class="nc" id="L40">                log.error(&quot; 配置错误：找不到 Bean [{}]&quot;, beanName);</span>
+<span class="nc" id="L41">                continue;</span>
+            }
+
+            // 直接构建 Key -&gt; Bean 的映射
+<span class="fc" id="L45">            StrategyKey key = new StrategyKey(rule.getType(), rule.getStatus(), rule.getOpt());</span>
+<span class="fc" id="L46">            Object bean = applicationContext.getBean(beanName);</span>
+
+<span class="fc" id="L48">            strategyMap.put(key, bean);</span>
+<span class="fc" id="L49">            log.info(&quot;加载策略: {} -&gt; {}&quot;, key, beanName);</span>
+<span class="fc" id="L50">        }</span>
+<span class="fc" id="L51">        log.info(&quot;======== 策略加载完毕，共 {} 条 ========&quot;, strategyMap.size());</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * 路由方法
+     * 利用泛型 &lt;T&gt;
+     * * @param type 订单类型
+     * @param status 订单状态
+     * @param opt 操作类型 (&quot;AUDIT&quot;, &quot;CANCEL&quot;, 等)
+     * @param requiredType 期望返回的接口类型 (AuditAction.class 等)
+     * @return 具体策略实现
+     */
+    public &lt;T&gt; T route(Byte type, Byte status, String opt, Class&lt;T&gt; requiredType) {
+<span class="fc" id="L64">        StrategyKey key = new StrategyKey(type, status, opt);</span>
+<span class="fc" id="L65">        Object bean = strategyMap.get(key);</span>
+
+        // 检查是否存在
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (bean == null) {</span>
+<span class="fc" id="L69">            return null;</span>
+        }
+
+        // 检查类型是否匹配 (比如配置里 opt写了AUDIT，但对应的Bean没实现AuditAction)
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (requiredType.isInstance(bean)) {</span>
+<span class="fc" id="L74">            return requiredType.cast(bean); // 安全强转</span>
+        } else {
+<span class="nc" id="L76">            log.error(&quot; 策略类型不匹配! Key={} 对应的Bean是 {}, 但期望是 {}&quot;, key, bean.getClass().getSimpleName(), requiredType.getSimpleName());</span>
+<span class="nc" id="L77">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

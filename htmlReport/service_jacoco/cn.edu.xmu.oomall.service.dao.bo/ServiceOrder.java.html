@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceOrder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.dao.bo</a> &gt; <span class="el_source">ServiceOrder.java</span></div><h1>ServiceOrder.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.dao.bo;
+
+import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
+import cn.edu.xmu.javaee.core.clonefactory.CopyTo;
+import cn.edu.xmu.javaee.core.exception.BusinessException;
+import cn.edu.xmu.javaee.core.model.OOMallObject;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
+import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
+import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
+import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static cn.edu.xmu.javaee.core.model.Constants.SYSTEM;
+
+/**
+ * @Slf4j
+ * @Builder
+ * @NoArgsConstructor
+ * @AllArgsConstructor
+ * @CopyFrom(ServiceOrderPo.class)
+ * @JsonInclude(JsonInclude.Include.NON_NULL)
+ * @ToString(exclude = &quot;serviceOrderDao&quot;)
+ */
+
+
+<span class="fc" id="L37">@Slf4j</span>
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@CopyFrom(ServiceOrderPo.class)
+public class ServiceOrder extends OOMallObject implements Serializable {
+
+    private Long maintainerId;
+    private Long shopId;
+
+    private String result;
+    private Byte type;//0上门 1寄件 2线上
+    private String description;
+
+    private Long regionId;
+    private String address;
+
+    private String consignee;
+    private String mobile;
+
+    private Byte status;
+
+    private String maintainerMobile;
+    private String maintainerName;
+
+    private Long productId;
+    private String serialNo;
+    private Long expressId;
+    @JsonIgnore
+    @Setter
+    private ServiceOrderDao serviceOrderDao;
+
+
+    /** 待接受 */
+<span class="fc" id="L74">    @JsonIgnore @ToString.Exclude public static final Byte UNACCEPT = 0;</span>
+    /** 待派工 */
+<span class="fc" id="L76">    @JsonIgnore @ToString.Exclude public static final Byte UNASSIGNED = 1;</span>
+    /** 待收件 */
+<span class="fc" id="L78">    @JsonIgnore @ToString.Exclude public static final Byte UNCHECK = 2;</span>
+    /** 维修中 */
+<span class="fc" id="L80">    @JsonIgnore @ToString.Exclude public static final Byte REPAIRING = 3;</span>
+    /** 取消 */
+<span class="fc" id="L82">    @JsonIgnore @ToString.Exclude public static final Byte CANCEL = 4;</span>
+    /** 已完成 */
+<span class="fc" id="L84">    @JsonIgnore @ToString.Exclude public static final Byte FINISH = 5;</span>
+
+
+    /**
+     * 状态和名称的对应
+     */
+<span class="fc" id="L90">    public static final Map&lt;Byte, String&gt; STATUSNAMES = new HashMap() {</span>
+        {
+<span class="fc" id="L92">            put(UNACCEPT, &quot;待接受&quot;);</span>
+<span class="fc" id="L93">            put(UNASSIGNED, &quot;待派工&quot;);</span>
+<span class="fc" id="L94">            put(UNCHECK, &quot;待收件&quot;);</span>
+<span class="fc" id="L95">            put(REPAIRING, &quot;维修中&quot;);</span>
+<span class="fc" id="L96">            put(CANCEL, &quot;已取消&quot;);</span>
+<span class="fc" id="L97">            put(FINISH, &quot;已完成&quot;);</span>
+<span class="fc" id="L98">        }</span>
+    };
+
+    /**
+     * 允许的状态迁移
+     */
+<span class="fc" id="L104">    private static final Map&lt;Byte, Set&lt;Byte&gt;&gt; toStatus = new HashMap&lt;&gt;() {</span>
+        {
+<span class="fc" id="L106">            put(UNACCEPT, new HashSet&lt;&gt;() {{</span>
+<span class="fc" id="L107">                add(UNASSIGNED);</span>
+<span class="fc" id="L108">                add(UNCHECK);</span>
+<span class="fc" id="L109">                add(CANCEL);</span>
+<span class="fc" id="L110">            }});</span>
+<span class="fc" id="L111">            put(UNASSIGNED, new HashSet&lt;&gt;() {{</span>
+<span class="fc" id="L112">                add(REPAIRING);</span>
+<span class="fc" id="L113">                add(CANCEL);</span>
+<span class="fc" id="L114">            }});</span>
+<span class="fc" id="L115">            put(UNCHECK, new HashSet&lt;&gt;() {{</span>
+<span class="fc" id="L116">                add(UNASSIGNED);</span>
+<span class="fc" id="L117">                add(CANCEL);</span>
+<span class="fc" id="L118">            }});</span>
+<span class="fc" id="L119">            put(REPAIRING, new HashSet&lt;&gt;() {{</span>
+<span class="fc" id="L120">                add(UNASSIGNED);</span>
+<span class="fc" id="L121">                add(FINISH);</span>
+<span class="fc" id="L122">                add(CANCEL);</span>
+<span class="fc" id="L123">            }});</span>
+<span class="fc" id="L124">        }</span>
+    };
+
+
+
+    /**
+     * 是否允许状态迁移
+     *
+     * @param status
+     * @return
+     */
+    public boolean allowStatus(Byte status) {
+<span class="fc" id="L136">        boolean ret = false;</span>
+<span class="pc bpc" id="L137" title="2 of 4 branches missed.">        if (Objects.nonNull(status) &amp;&amp; Objects.nonNull(this.status)) {</span>
+<span class="fc" id="L138">            Set&lt;Byte&gt; allowStatusSet = toStatus.get(this.status);</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">            if (Objects.nonNull(allowStatusSet)) {</span>
+<span class="fc" id="L140">                ret = allowStatusSet.contains(status);</span>
+            }
+        }
+<span class="fc" id="L143">        return ret;</span>
+    }
+
+    /**
+     * 获得当前状态名称
+     *
+     * @return
+     */
+    public String getStatusName() {
+<span class="nc" id="L152">        return STATUSNAMES.get(this.status);</span>
+    }
+
+    private void changeStatus(Byte status, UserToken user) {
+<span class="fc" id="L156">        log.debug(&quot;changeStatus: id = {}, status = {}&quot;, this.id, status);</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (!this.allowStatus(status)) {</span>
+<span class="nc" id="L158">            throw new BusinessException(ReturnNo.STATENOTALLOW, String.format(ReturnNo.STATENOTALLOW.getMessage(), &quot;服务单&quot;, this.id, STATUSNAMES.get(this.status)));</span>
+        }
+<span class="fc" id="L160">        this.setStatus(status);</span>
+<span class="fc" id="L161">        this.serviceOrderDao.save(this, user);</span>
+<span class="fc" id="L162">    }</span>
+
+    public ServiceOrder create(UserToken user) {
+
+<span class="nc" id="L166">        this.status = UNACCEPT;</span>
+<span class="nc" id="L167">        log.debug(&quot;BO: executing create logic for shopId={}&quot;, this.shopId);</span>
+<span class="nc" id="L168">        return this.serviceOrderDao.insert(this, user);</span>
+    }
+
+    /**
+     * 1. 接受服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void accept(UserToken user, StrategyRouter strategyRouter) {
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (!UNACCEPT.equals(this.status)) {</span>
+<span class="fc" id="L177">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;当前状态不允许接受&quot;);</span>
+        }
+        //使用泛型route方法获取 AuditAction
+<span class="fc" id="L180">        AcceptAction action = strategyRouter.route(this.type, this.status, &quot;ACCEPT&quot;, AcceptAction.class);</span>
+
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (action == null) {</span>
+<span class="fc" id="L183">            log.error(&quot;未找到接受策略: type={}, status={}&quot;, this.type, this.status);</span>
+<span class="fc" id="L184">            throw new BusinessException(ReturnNo.FIELD_NOTVALID, &quot;未配置该类型的接受策略&quot;);</span>
+        }
+
+        // 3. 执行策略并获取目标状态
+<span class="fc" id="L188">        Byte nextStatus = action.execute(this, user);</span>
+
+        //结合allowStatus校验状态流转是否合法
+<span class="pc bpc" id="L191" title="1 of 4 branches missed.">        if (!UNASSIGNED.equals(nextStatus)&amp;&amp;!UNCHECK.equals(nextStatus)) {</span>
+<span class="nc" id="L192">            log.error(&quot;接受通过后试图流转到非法状态: current={}, next={}&quot;, this.status, nextStatus);</span>
+<span class="nc" id="L193">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;接受后状态流转异常&quot;);</span>
+        }
+<span class="fc" id="L195">        this.changeStatus(nextStatus, user);</span>
+<span class="fc" id="L196">    }</span>
+
+    /**
+     * 2. 取消服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void cancel(UserToken user,StrategyRouter strategyRouter) {
+        // 已完成或已取消不允许再次取消
+<span class="pc bpc" id="L204" title="1 of 4 branches missed.">        if (FINISH.equals(this.status) || CANCEL.equals(this.status)) {</span>
+<span class="fc" id="L205">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;当前状态不允许取消&quot;);</span>
+        }
+
+        // 通过策略路由找到具体的取消策略
+<span class="fc" id="L209">        CancelAction action = strategyRouter.route(this.type, this.status, &quot;CANCEL&quot;, CancelAction.class);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (action == null) {</span>
+<span class="fc" id="L211">            throw new BusinessException(ReturnNo.FIELD_NOTVALID, &quot;未配置该类型的取消策略&quot;);</span>
+        }
+
+        // 执行策略获取目标状态
+<span class="fc" id="L215">        Byte nextStatus = action.execute(this,user);</span>
+
+        // 校验状态流转合法性
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (!CANCEL.equals(nextStatus)) {</span>
+<span class="nc" id="L219">            log.error(&quot;取消后试图流转到非法状态: current={}, next={}&quot;, this.status, nextStatus);</span>
+<span class="nc" id="L220">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;取消后状态流转异常&quot;);</span>
+        }
+<span class="fc" id="L222">        this.changeStatus(nextStatus, user);</span>
+<span class="fc" id="L223">    }</span>
+
+
+
+    /**
+     * 3. 完成服务单
+     * @param strategyRouter 传入策略路由工具
+     */
+    public void finish(String result, UserToken user, StrategyRouter strategyRouter) {
+        // 状态校验：只有维修中才能完成
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        if (!REPAIRING.equals(this.status)) {</span>
+<span class="nc" id="L234">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;当前状态不允许完成服务单&quot;);</span>
+        }
+
+<span class="fc" id="L237">        this.result = result;</span>
+
+<span class="fc" id="L239">        FinishAction action = strategyRouter.route(this.type.byteValue(), this.status.byteValue(), &quot;FINISH&quot;, FinishAction.class);</span>
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (action == null) {</span>
+<span class="nc" id="L241">            log.error(&quot;未找到完成策略: type={}, status={}&quot;, this.type, this.status);</span>
+<span class="nc" id="L242">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;未配置该类型的完成策略&quot;);</span>
+        }
+
+<span class="fc" id="L245">        Byte nextStatus = action.execute(this, user);</span>
+
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">        if (!FINISH.equals(nextStatus)) {</span>
+<span class="nc" id="L248">            log.error(&quot;完成策略返回非法目标状态: current={}, next={}&quot;, this.status, nextStatus);</span>
+<span class="nc" id="L249">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;完成后状态流转异常&quot;);</span>
+        }
+
+<span class="fc" id="L252">        this.changeStatus(nextStatus, user);</span>
+<span class="fc" id="L253">    }</span>
+    /**
+     * 4. 验收包裹
+     */
+    public void receiveExpress(String result, boolean accepted,UserToken user,StrategyRouter strategyRouter){
+<span class="fc bfc" id="L258" title="All 2 branches covered.">        if (!UNCHECK.equals(this.status)) {</span>
+<span class="fc" id="L259">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;当前状态不允许完成服务单&quot;);</span>
+        }
+<span class="fc bfc" id="L261" title="All 2 branches covered.">        if(accepted)</span>
+<span class="fc" id="L262">            this.changeStatus(UNASSIGNED, user);</span>
+        else {
+<span class="fc" id="L264">            this.status = UNASSIGNED;</span>
+<span class="fc" id="L265">            this.cancel(user, strategyRouter);</span>
+        }
+<span class="fc" id="L267">    }</span>
+    /**
+     * 维修师傅退回，维修中 -&gt; 待派工
+     */
+    public void backServiceOrder(UserToken user) {
+<span class="fc bfc" id="L272" title="All 2 branches covered.">        if (!REPAIRING.equals(this.status)) {</span>
+<span class="fc" id="L273">            throw new BusinessException(ReturnNo.STATENOTALLOW, &quot;当前状态不允许退回待派工&quot;);</span>
+        }
+<span class="fc" id="L275">        this.changeStatus(UNASSIGNED, user);</span>
+<span class="fc" id="L276">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L279">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L283">        this.id = id;</span>
+<span class="fc" id="L284">    }</span>
+
+    public Long getCreatorId() {
+<span class="fc" id="L287">        return creatorId;</span>
+    }
+
+    public void setCreatorId(Long creatorId) {
+<span class="fc" id="L291">        this.creatorId = creatorId;</span>
+<span class="fc" id="L292">    }</span>
+
+    public String getCreatorName() {
+<span class="fc" id="L295">        return creatorName;</span>
+    }
+
+    public void setCreatorName(String creatorName) {
+<span class="fc" id="L299">        this.creatorName = creatorName;</span>
+<span class="fc" id="L300">    }</span>
+
+    public Long getModifierId() {
+<span class="fc" id="L303">        return modifierId;</span>
+    }
+
+    public void setModifierId(Long modifierId) {
+<span class="fc" id="L307">        this.modifierId = modifierId;</span>
+<span class="fc" id="L308">    }</span>
+
+    public String getModifierName() {
+<span class="fc" id="L311">        return modifierName;</span>
+    }
+
+    public void setModifierName(String modifierName) {
+<span class="fc" id="L315">        this.modifierName = modifierName;</span>
+<span class="fc" id="L316">    }</span>
+
+    public LocalDateTime getGmtCreate() {
+<span class="fc" id="L319">        return gmtCreate;</span>
+    }
+
+    public void setGmtCreate(LocalDateTime gmtCreate) {
+<span class="fc" id="L323">        this.gmtCreate = gmtCreate;</span>
+<span class="fc" id="L324">    }</span>
+
+    public LocalDateTime getGmtModified() {
+<span class="fc" id="L327">        return gmtModified;</span>
+    }
+
+    public void setGmtModified(LocalDateTime gmtModified) {
+<span class="fc" id="L331">        this.gmtModified = gmtModified;</span>
+<span class="fc" id="L332">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

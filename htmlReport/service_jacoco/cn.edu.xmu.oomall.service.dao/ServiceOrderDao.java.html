@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceOrderDao.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.dao</a> &gt; <span class="el_source">ServiceOrderDao.java</span></div><h1>ServiceOrderDao.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.dao;
+
+import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.javaee.core.exception.BusinessException;
+import cn.edu.xmu.javaee.core.model.ReturnNo;
+import cn.edu.xmu.javaee.core.util.CloneFactory;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.mapper.ServiceOrderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Repository;
+import java.time.Instant;
+import java.util.Objects;
+import java.time.LocalDateTime;
+
+import static cn.edu.xmu.javaee.core.model.Constants.IDNOTEXIST;
+
+@Repository
+<span class="fc" id="L21">@Slf4j</span>
+@RequiredArgsConstructor
+public class ServiceOrderDao {
+
+    private final ServiceOrderPoMapper serviceOrderPoMapper;
+
+    public void build(ServiceOrder bo) {
+<span class="fc" id="L28">        bo.setServiceOrderDao(this);</span>
+<span class="fc" id="L29">    }</span>
+
+    public ServiceOrder insert(ServiceOrder bo, UserToken user) {
+<span class="fc" id="L32">        bo.setId(null);</span>
+<span class="fc" id="L33">        bo.setCreator(user);</span>
+<span class="fc" id="L34">        bo.setGmtCreate(LocalDateTime.now());</span>
+
+<span class="fc" id="L36">        ServiceOrderPo po = CloneFactory.copy(new ServiceOrderPo(), bo);</span>
+<span class="fc" id="L37">        log.debug(&quot;insert: po = {}&quot;, po);</span>
+
+<span class="fc" id="L39">        po = this.serviceOrderPoMapper.save(po);</span>
+
+<span class="fc" id="L41">        CloneFactory.copy(bo, po);</span>
+<span class="fc" id="L42">        this.build(bo);</span>
+<span class="fc" id="L43">        return bo;</span>
+    }
+
+    public ServiceOrder findById(@NotNull Long id) {
+<span class="fc" id="L47">        log.debug(&quot;findById: id = {}&quot;, id);</span>
+
+<span class="fc" id="L49">        ServiceOrderPo po = this.findPoById(id);</span>
+
+<span class="fc" id="L51">        ServiceOrder bo = CloneFactory.copy(new ServiceOrder(), po);</span>
+<span class="fc" id="L52">        log.debug(&quot;findById: retrieve from database serviceOrder = {}&quot;, bo);</span>
+
+<span class="fc" id="L54">        this.build(bo);</span>
+<span class="fc" id="L55">        return bo;</span>
+    }
+
+    public void save(@NotNull ServiceOrder bo, UserToken user){
+<span class="fc" id="L59">        ServiceOrderPo oldPo = this.findPoById(bo.getId());</span>
+<span class="fc" id="L60">        bo.setModifier(user);</span>
+<span class="fc" id="L61">        bo.setGmtModified(LocalDateTime.now());</span>
+<span class="fc" id="L62">        ServiceOrderPo po = CloneFactory.copy(oldPo, bo);</span>
+<span class="fc" id="L63">        log.debug(&quot;save: po = {}&quot;, po);</span>
+<span class="fc" id="L64">        this.serviceOrderPoMapper.save(po);</span>
+<span class="fc" id="L65">    }</span>
+
+    /**
+     * 按照id找到Po对象
+     * @param id 对象id
+     * @return po对象
+     */
+    private ServiceOrderPo findPoById(@NotNull Long id){
+<span class="fc" id="L73">        return this.serviceOrderPoMapper.findById(id)</span>
+<span class="fc" id="L74">                .orElseThrow(() -&gt; new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST,</span>
+<span class="fc" id="L75">                        String.format(ReturnNo.RESOURCE_ID_NOTEXIST.getMessage(), &quot;服务单&quot;, id)));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

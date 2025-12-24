@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceProviderDaoTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">java in service Coverage Results</a> &gt; <a href="index.source.html" class="el_package">cn.edu.xmu.oomall.service.dao</a> &gt; <span class="el_source">ServiceProviderDaoTest.java</span></div><h1>ServiceProviderDaoTest.java</h1><pre class="source lang-java linenums">package cn.edu.xmu.oomall.service.dao;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
+import cn.edu.xmu.oomall.service.mapper.ServiceProviderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceProviderPo;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.time.LocalDateTime;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName(&quot;服务商Dao层补充测试&quot;)
+<span class="fc" id="L21">class ServiceProviderDaoTest {</span>
+
+    @Mock
+    private ServiceProviderPoMapper serviceProviderPoMapper; // Mock 掉 Mapper 接口
+
+    @InjectMocks
+    private ServiceProviderDao serviceProviderDao; // 自动将 Mock 注入到 Dao 中
+
+    @Test
+    @DisplayName(&quot;数据库增加服务商&quot;)
+    void testInsert() {
+        // 1. 准备测试数据 (Given)
+<span class="fc" id="L33">        ServiceProvider bo = new ServiceProvider();</span>
+<span class="fc" id="L34">        bo.setName(&quot;测试服务商&quot;);</span>
+
+<span class="fc" id="L36">        UserToken user = new UserToken();</span>
+<span class="fc" id="L37">        user.setId(123L);</span>
+<span class="fc" id="L38">        user.setName(&quot;Admin&quot;);</span>
+<span class="fc" id="L39">        user.setUserLevel(1);</span>
+        // 模拟 Mapper 的返回行为
+<span class="fc" id="L41">        ServiceProviderPo savedPo = new ServiceProviderPo();</span>
+<span class="fc" id="L42">        savedPo.setId(1001L); // 模拟数据库生成的 ID</span>
+<span class="fc" id="L43">        savedPo.setName(&quot;测试服务商&quot;);</span>
+
+<span class="fc" id="L45">        when(serviceProviderPoMapper.save(any(ServiceProviderPo.class))).thenReturn(savedPo);</span>
+
+        // 2. 执行目标方法 (When)
+<span class="fc" id="L48">        ServiceProvider result = serviceProviderDao.insert(bo, user);</span>
+
+        // 3. 验证结果 (Then)
+<span class="fc" id="L51">        assertNotNull(result);</span>
+<span class="fc" id="L52">        assertEquals(1001L, result.getId()); // 验证 ID 是否成功回填</span>
+<span class="fc" id="L53">        assertEquals(user.getId(), result.getCreatorId()); // 验证创建者是否设置正确</span>
+<span class="fc" id="L54">        assertNotNull(result.getGmtCreate()); // 验证创建时间是否生成</span>
+
+        // 验证 Mapper 的 save 方法确实被调用了一次
+<span class="fc" id="L57">        verify(serviceProviderPoMapper, times(1)).save(any(ServiceProviderPo.class));</span>
+<span class="fc" id="L58">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
