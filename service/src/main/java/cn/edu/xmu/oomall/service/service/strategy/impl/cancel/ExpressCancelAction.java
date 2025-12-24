@@ -25,17 +25,15 @@ import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
 public class ExpressCancelAction implements CancelAction {
     @Resource
     private ExpressClient expressClient;
-    @Resource
-    private ServiceProviderDao serviceProviderDao;
+
     @Override
-    public Byte execute(ServiceOrder serviceOrder, UserToken user) {
+    public Byte execute(ServiceOrder serviceOrder,  ServiceProvider serviceProvider,UserToken user) {
         log.info("[ExpressCancelAction] 命中创建寄回物品运单策略，boId={}", serviceOrder.getId());
         // TODO:
         // 1. 组装参数
         ExpressDto dto = new ExpressDto();
         dto.setSender(dto.new ContactsInfo());
         dto.setDelivery(dto.new ContactsInfo());
-        ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
         dto.getSender().setAddress(serviceProvider.getAddress());

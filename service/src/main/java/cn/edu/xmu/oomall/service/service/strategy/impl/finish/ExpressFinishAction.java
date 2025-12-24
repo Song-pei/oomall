@@ -6,6 +6,7 @@ import cn.edu.xmu.javaee.core.model.InternalReturnObject;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
@@ -23,7 +24,7 @@ public class ExpressFinishAction implements FinishAction {
     private ExpressClient expressClient;
 
     @Override
-    public Byte execute(ServiceOrder bo, UserToken user) {
+    public Byte execute(ServiceOrder bo, ServiceProvider serviceProvider,UserToken user) {
         log.info("[ExpressFinishAction] 开始执行寄件完成策略，boId={}", bo.getId());
 
         // 1. 组装请求体
@@ -35,10 +36,11 @@ public class ExpressFinishAction implements FinishAction {
 
         // 2. 组装联系人
         ExpressDto.ContactsInfo sender = requestDto.new ContactsInfo();
-        sender.setName(bo.getMaintainerName());
-        sender.setMobile(bo.getMaintainerMobile());
-        sender.setAddress("服务商默认发货地址");
-        sender.setRegionId(0L);
+
+        sender.setRegionId(serviceProvider.getRegionId());
+        sender.setAddress(serviceProvider.getAddress());
+        sender.setMobile(serviceProvider.getMobile());
+        sender.setName(serviceProvider.getConsignee());
 
         ExpressDto.ContactsInfo delivery = requestDto.new ContactsInfo();
         delivery.setName(bo.getConsignee());

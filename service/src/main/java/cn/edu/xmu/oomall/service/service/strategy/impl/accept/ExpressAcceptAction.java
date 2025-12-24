@@ -20,9 +20,8 @@ import cn.edu.xmu.javaee.core.model.ReturnObject;
 public class ExpressAcceptAction implements AcceptAction {
     @Resource
     private ExpressClient expressClient;
-    @Resource
-    private ServiceProviderDao serviceProviderDao;
-    public Byte execute(ServiceOrder serviceOrder, UserToken user)
+
+    public Byte execute(ServiceOrder serviceOrder,  ServiceProvider serviceProvider,UserToken user)
     {
         log.info("[FixAuditAction] 开始执行带创建运单的接受服务单逻辑，boId={},", serviceOrder.getId());
 
@@ -31,7 +30,6 @@ public class ExpressAcceptAction implements AcceptAction {
         // 使用 dto 实例来创建内部类实例
         dto.setSender(dto.new ContactsInfo());
         dto.setDelivery(dto.new ContactsInfo());
-        ServiceProvider serviceProvider = serviceProviderDao.findById(serviceOrder.getMaintainerId());
         //寄件者（服务商）信息
         dto.getSender().setRegionId(serviceProvider.getRegionId());
         dto.getSender().setAddress(serviceProvider.getAddress());

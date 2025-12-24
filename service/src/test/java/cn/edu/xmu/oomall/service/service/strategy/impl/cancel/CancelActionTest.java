@@ -58,9 +58,13 @@ class CancelActionTest {
     @Test
     void simpleCancel_success() throws Exception {
         Long orderId = 700L;
+        jdbcTemplate.execute("INSERT INTO service_provider " +
+                "(id, name, consignee, address, mobile, region_id, status, gmt_create) " +
+                "VALUES (" + MAINTAINER_ID + ", '维修中心', '王经理', '厦门市软件园', '13811112222', 350203, 1, NOW())");
+
         jdbcTemplate.execute("INSERT INTO service_service " +
-                "(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) " +
-                "VALUES (" + orderId + ", " + SHOP_ID + ", 0, 0, 350206, '测试地址', '小张', '13955556666', NOW())");
+                "(id, maintainer_id,shop_id, status, type, region_id, address, consignee, mobile, gmt_create) " +
+                "VALUES (" + orderId + ", "+MAINTAINER_ID+"," + SHOP_ID + ", 0, 0, 350206, '测试地址', '小张', '13955556666', NOW())");
 
         mockMvc.perform(post("/maintainers/{did}/services/{id}/cancel", MAINTAINER_ID, orderId)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -126,10 +130,13 @@ class CancelActionTest {
     void interceptCancel_success() throws Exception {
         Long orderId = 600L;
         Long expressId = 8888L;
+        jdbcTemplate.execute("INSERT INTO service_provider " +
+                "(id, name, consignee, address, mobile, region_id, status, gmt_create) " +
+                "VALUES (" + MAINTAINER_ID + ", '维修中心', '王经理', '厦门市软件园', '13811112222', 350203, 1, NOW())");
 
         jdbcTemplate.execute("INSERT INTO service_service " +
-                "(id, shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) " +
-                "VALUES (" + orderId + ", " + SHOP_ID + ", 2, 1, " + expressId +
+                "(id, maintainer_id,shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) " +
+                "VALUES (" + orderId + ", " + MAINTAINER_ID +","+ SHOP_ID + ", 2, 1, " + expressId +
                 ", 350206, '用户地址', '小张', '13955556666', NOW())");
 
         Mockito.when(expressClient.cancelPackage(eq(SHOP_ID), eq(expressId), any(), any()))
@@ -146,10 +153,13 @@ class CancelActionTest {
     void interceptCancel_remoteFail() throws Exception {
         Long orderId = 801L;
         Long expressId = 8889L;
+        jdbcTemplate.execute("INSERT INTO service_provider " +
+                "(id, name, consignee, address, mobile, region_id, status, gmt_create) " +
+                "VALUES (" + MAINTAINER_ID + ", '维修中心', '王经理', '厦门市软件园', '13811112222', 350203, 1, NOW())");
 
         jdbcTemplate.execute("INSERT INTO service_service " +
-                "(id, shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) " +
-                "VALUES (" + orderId + ", " + SHOP_ID + ", 2, 1, " + expressId +
+                "(id, maintainer_id,shop_id, status, type, express_id, region_id, address, consignee, mobile, gmt_create) " +
+                "VALUES (" + orderId + ", "+MAINTAINER_ID+"," + SHOP_ID + ", 2, 1, " + expressId +
                 ", 350206, '用户地址', '小张', '13955556666', NOW())");
 
         Mockito.when(expressClient.cancelPackage(any(), any(), any(), any()))

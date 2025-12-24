@@ -2,6 +2,7 @@
 
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,12 +11,12 @@ import org.springframework.stereotype.Component;
  * 维修审核动作
  * 场景：维修单(Type=2) 审核通过时，需要调用第三方服务创建工单
  */
-<span class="fc" id="L13">@Slf4j</span>
+<span class="fc" id="L14">@Slf4j</span>
 @Component(&quot;simpleAcceptAction&quot;)
-<span class="fc" id="L15">public class SimpleAcceptAction implements AcceptAction {</span>
-    public Byte execute(ServiceOrder serviceOrder, UserToken user)
+<span class="fc" id="L16">public class SimpleAcceptAction implements AcceptAction {</span>
+    public Byte execute(ServiceOrder serviceOrder, ServiceProvider serviceProvider,UserToken user)
     {
-<span class="fc" id="L18">       return  serviceOrder.UNASSIGNED;</span>
+<span class="fc" id="L19">       return  serviceOrder.UNASSIGNED;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

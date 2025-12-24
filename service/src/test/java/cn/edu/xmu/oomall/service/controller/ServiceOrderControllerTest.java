@@ -8,7 +8,9 @@ import cn.edu.xmu.oomall.service.controller.dto.ExpressDto;
 import cn.edu.xmu.oomall.service.controller.dto.ServiceOrderFinishDto;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
 import cn.edu.xmu.oomall.service.mapper.ServiceOrderPoMapper;
+import cn.edu.xmu.oomall.service.mapper.ServiceProviderPoMapper;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
+import cn.edu.xmu.oomall.service.mapper.po.ServiceProviderPo;
 import cn.edu.xmu.oomall.service.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.service.service.feign.po.ExpressPo;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,17 +58,20 @@ class ServiceOrderControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ServiceOrderPoMapper serviceOrderPoMapper;
+    @Autowired private ServiceProviderPoMapper serviceProviderPoMapper;
     @Autowired private ObjectMapper objectMapper;
     @PersistenceContext private EntityManager entityManager;
 
     @MockitoBean private ExpressClient expressClient;
     @MockitoBean private RedisUtil redisUtil;
-
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     private static final String FINISH_URL = "/maintainers/{did}/services/{id}/finish";
     private final Long MAINTAINER_ID = 1L;
     private final Long SHOP_ID = 100L;
 
     private ServiceOrderPo createValidPo(Byte type, Byte status) {
+
         ServiceOrderPo po = new ServiceOrderPo();
         po.setType(type);
         po.setStatus(status);
@@ -80,10 +86,23 @@ class ServiceOrderControllerTest {
         entityManager.clear();
         return saved;
     }
+    private void createServiceProviderPo(String name) {
+        // 1. 先清理旧数据，防止主键冲突
+        jdbcTemplate.execute("DELETE FROM service_provider WHERE id = " + MAINTAINER_ID);
+
+        // 2. 用原生 SQL 插入
+        jdbcTemplate.execute(String.format(
+                "INSERT INTO service_provider (id, name, status, category) VALUES (%d, '%s', 1, '默认范畴')",
+                MAINTAINER_ID, name));
+
+        // 3. 同样要清除持久化上下文
+        entityManager.clear();
+    }
 
     @Test
     @DisplayName("场景1：上门维修(type=0)成功完成")
     void finishOnSite_Success() throws Exception {
+        createServiceProviderPo("测试维修中心");
         ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);
         ServiceOrderFinishDto dto = new ServiceOrderFinishDto();
         dto.setResult("维修完成");
@@ -99,6 +118,7 @@ class ServiceOrderControllerTest {
     @Test
     @DisplayName("场景2：寄件维修(type=1)成功完成")
     void finishExpress_Success() throws Exception {
+        createServiceProviderPo("测试维修中心");
         ServiceOrderPo po = createValidPo((byte) 1, ServiceOrder.REPAIRING);
 
         ExpressPo mockExpress = new ExpressPo();
@@ -128,6 +148,7 @@ class ServiceOrderControllerTest {
     @Test
     @DisplayName("场景3：远程服务异常")
     void finishExpress_FeignException() throws Exception {
+        createServiceProviderPo("测试维修中心");
         ServiceOrderPo po = createValidPo((byte) 1, ServiceOrder.REPAIRING);
 
         // ✅ 使用 any() 确保异常抛出逻辑被触发
@@ -152,6 +173,7 @@ class ServiceOrderControllerTest {
     @Test
     @DisplayName("场景5：越权访问")
     void finish_Forbidden() throws Exception {
+        createServiceProviderPo("测试维修中心");
         ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);
         ServiceOrderFinishDto dto = new ServiceOrderFinishDto();
         dto.setResult("越权访问测试");
@@ -167,6 +189,7 @@ class ServiceOrderControllerTest {
     @Test
     @DisplayName("场景6：参数校验失败")
     void finish_InvalidParam() throws Exception {
+        createServiceProviderPo("测试维修中心");
         ServiceOrderPo po = createValidPo((byte) 0, ServiceOrder.REPAIRING);
         ServiceOrderFinishDto dto = new ServiceOrderFinishDto();
         dto.setResult("   ");

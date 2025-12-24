@@ -7,6 +7,7 @@ import cn.edu.xmu.javaee.core.model.OOMallObject;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.ServiceOrderDao;
+import cn.edu.xmu.oomall.service.dao.ServiceProviderDao;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
 import cn.edu.xmu.oomall.service.service.strategy.action.CancelAction;
@@ -14,6 +15,7 @@ import cn.edu.xmu.oomall.service.service.strategy.action.FinishAction;
 import cn.edu.xmu.oomall.service.service.strategy.config.StrategyRouter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.annotation.Resource;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
@@ -68,7 +70,9 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     @JsonIgnore
     @Setter
     private ServiceOrderDao serviceOrderDao;
-
+    @JsonIgnore
+    @Setter
+    private ServiceProviderDao serviceProviderDao;
 
     /** 待接受 */
     @JsonIgnore @ToString.Exclude public static final Byte UNACCEPT = 0;
@@ -184,8 +188,8 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的接受策略");
         }
 
-        // 3. 执行策略并获取目标状态
-        Byte nextStatus = action.execute(this, user);
+        //执行策略并获取目标状态
+        Byte nextStatus = action.execute(this, serviceProviderDao.findById(maintainerId),user);
 
         //结合allowStatus校验状态流转是否合法
         if (!UNASSIGNED.equals(nextStatus)&&!UNCHECK.equals(nextStatus)) {
@@ -204,15 +208,14 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         if (FINISH.equals(this.status) || CANCEL.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
-
-        // 通过策略路由找到具体的取消策略
+                // 通过策略路由找到具体的取消策略
         CancelAction action = strategyRouter.route(this.type, this.status, "CANCEL", CancelAction.class);
         if (action == null) {
             throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的取消策略");
         }
 
-        // 执行策略获取目标状态
-        Byte nextStatus = action.execute(this,user);
+        //执行策略并获取目标状态
+        Byte nextStatus = action.execute(this, serviceProviderDao.findById(maintainerId),user);
 
         // 校验状态流转合法性
         if (!CANCEL.equals(nextStatus)) {
@@ -235,14 +238,13 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         }
 
         this.result = result;
-
         FinishAction action = strategyRouter.route(this.type.byteValue(), this.status.byteValue(), "FINISH", FinishAction.class);
         if (action == null) {
             log.error("未找到完成策略: type={}, status={}", this.type, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的完成策略");
         }
 
-        Byte nextStatus = action.execute(this, user);
+        Byte nextStatus = action.execute(this, serviceProviderDao.findById(maintainerId),user);
 
         if (!FINISH.equals(nextStatus)) {
             log.error("完成策略返回非法目标状态: current={}, next={}", this.status, nextStatus);

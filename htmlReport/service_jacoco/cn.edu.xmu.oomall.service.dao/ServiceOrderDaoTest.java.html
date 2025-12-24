@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @DataJpaTest  // 仅启动 JPA 相关组件，速度快且自动回滚
-@Import({ServiceOrderDao.class}) // 注入被测类
+@Import({ServiceOrderDao.class,
+        ServiceProviderDao.class}) // 注入被测类
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName(&quot;服务单Dao层补充测试&quot;)
-<span class="fc" id="L26">public class ServiceOrderDaoTest {</span>
+<span class="fc" id="L27">public class ServiceOrderDaoTest {</span>
 
     @Autowired
     private ServiceOrderDao serviceOrderDao;
@@ -37,38 +38,38 @@ import static org.junit.jupiter.api.Assertions.assertAll;
     @BeforeEach
     void setUp() {
         // 准备用户信息
-<span class="fc" id="L40">        testUser = new UserToken();</span>
-<span class="fc" id="L41">        testUser.setId(123L);</span>
-<span class="fc" id="L42">        testUser.setName(&quot;测试人员&quot;);</span>
+<span class="fc" id="L41">        testUser = new UserToken();</span>
+<span class="fc" id="L42">        testUser.setId(123L);</span>
+<span class="fc" id="L43">        testUser.setName(&quot;测试人员&quot;);</span>
 
         // 准备初始 BO 数据
-<span class="fc" id="L45">        testBo = new ServiceOrder();</span>
-<span class="fc" id="L46">        testBo.setShopId(100L);</span>
-<span class="fc" id="L47">        testBo.setConsignee(&quot;张三&quot;);</span>
-<span class="fc" id="L48">        testBo.setMobile(&quot;13900139000&quot;);</span>
-<span class="fc" id="L49">        testBo.setAddress(&quot;厦门大学&quot;);</span>
-<span class="fc" id="L50">        testBo.setRegionId(1101L);</span>
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L46">        testBo = new ServiceOrder();</span>
+<span class="fc" id="L47">        testBo.setShopId(100L);</span>
+<span class="fc" id="L48">        testBo.setConsignee(&quot;张三&quot;);</span>
+<span class="fc" id="L49">        testBo.setMobile(&quot;13900139000&quot;);</span>
+<span class="fc" id="L50">        testBo.setAddress(&quot;厦门大学&quot;);</span>
+<span class="fc" id="L51">        testBo.setRegionId(1101L);</span>
+<span class="fc" id="L52">    }</span>
 
     @Test
     @DisplayName(&quot;数据库增加服务单&quot;)
     void insert_Success() {
         // 1. 执行插入
-<span class="fc" id="L57">        ServiceOrder result = serviceOrderDao.insert(testBo, testUser);</span>
+<span class="fc" id="L58">        ServiceOrder result = serviceOrderDao.insert(testBo, testUser);</span>
 
         // 2. 验证返回的 BO
-<span class="fc" id="L60">        assertAll(&quot;验证返回对象&quot;,</span>
-<span class="fc" id="L61">                () -&gt; assertThat(result.getId()).isNotNull(), // ID 应该已被数据库填充</span>
-<span class="fc" id="L62">                () -&gt; assertThat(result.getCreatorId()).isEqualTo(testUser.getId()), // 验证 Creator</span>
-<span class="fc" id="L63">                () -&gt; assertThat(result.getGmtCreate()).isBeforeOrEqualTo(LocalDateTime.now()),</span>
-<span class="fc" id="L64">                () -&gt; assertThat(result.getConsignee()).isEqualTo(&quot;张三&quot;)</span>
+<span class="fc" id="L61">        assertAll(&quot;验证返回对象&quot;,</span>
+<span class="fc" id="L62">                () -&gt; assertThat(result.getId()).isNotNull(), // ID 应该已被数据库填充</span>
+<span class="fc" id="L63">                () -&gt; assertThat(result.getCreatorId()).isEqualTo(testUser.getId()), // 验证 Creator</span>
+<span class="fc" id="L64">                () -&gt; assertThat(result.getGmtCreate()).isBeforeOrEqualTo(LocalDateTime.now()),</span>
+<span class="fc" id="L65">                () -&gt; assertThat(result.getConsignee()).isEqualTo(&quot;张三&quot;)</span>
         );
 
         // 3. 验证数据库中是否真的存在
-<span class="fc" id="L68">        ServiceOrderPo savedPo = serviceOrderPoMapper.findById(result.getId()).orElse(null);</span>
-<span class="fc" id="L69">        assertThat(savedPo).isNotNull();</span>
-<span class="fc" id="L70">        assertThat(savedPo.getShopId()).isEqualTo(100L);</span>
-<span class="fc" id="L71">        assertThat(savedPo.getAddress()).isEqualTo(&quot;厦门大学&quot;);</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L69">        ServiceOrderPo savedPo = serviceOrderPoMapper.findById(result.getId()).orElse(null);</span>
+<span class="fc" id="L70">        assertThat(savedPo).isNotNull();</span>
+<span class="fc" id="L71">        assertThat(savedPo.getShopId()).isEqualTo(100L);</span>
+<span class="fc" id="L72">        assertThat(savedPo.getAddress()).isEqualTo(&quot;厦门大学&quot;);</span>
+<span class="fc" id="L73">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
