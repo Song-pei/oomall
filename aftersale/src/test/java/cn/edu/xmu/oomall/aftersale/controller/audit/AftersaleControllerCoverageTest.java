@@ -206,9 +206,11 @@ public class AftersaleControllerCoverageTest {
     public void bo_Coverage_StatusNotAllow() {
         AftersaleOrder bo = new AftersaleOrder();
         bo.setStatus(AftersaleOrder.UNCHECK);
+        UserToken user = new UserToken(); // 创建 UserToken
 
+        // 方法签名变更：补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("ok", "ok", true, strategyRouter)
+                bo.audit("ok", "ok", true, strategyRouter, user, aftersaleOrderDao)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }
@@ -218,11 +220,13 @@ public class AftersaleControllerCoverageTest {
         AftersaleOrder bo = new AftersaleOrder();
         bo.setType(1);
         bo.setStatus(AftersaleOrder.UNAUDIT);
+        UserToken user = new UserToken(); // 创建 UserToken
 
         Mockito.when(strategyRouter.route(any(), any(), any(), any())).thenReturn(null);
 
+        // 方法签名变更：补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("同意", "原因", true, strategyRouter)
+                bo.audit("同意", "原因", true, strategyRouter, user, aftersaleOrderDao)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }
@@ -232,13 +236,16 @@ public class AftersaleControllerCoverageTest {
         AftersaleOrder bo = new AftersaleOrder();
         bo.setType(1);
         bo.setStatus(AftersaleOrder.UNAUDIT);
+        UserToken user = new UserToken(); // 创建 UserToken
 
         AuditAction mockAction = Mockito.mock(AuditAction.class);
+        // 模拟 Action 返回状态码 999
         Mockito.when(mockAction.execute(any(), any())).thenReturn(ActionResult.status(999));
         Mockito.when(strategyRouter.route(any(), any(), any(), any())).thenReturn(mockAction);
 
+        // 补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("同意", "原因", true, strategyRouter)
+                bo.audit("同意", "原因", true, strategyRouter, user, aftersaleOrderDao)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }
