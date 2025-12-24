@@ -9,6 +9,7 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class ExpressRefuseInspectAction implements InspectAction {
     @Resource
     private ExpressClient expressClient;
     @Override
-    public Integer execute(AftersaleOrder bo, UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo, UserToken user) {
         try{
             // 1. 构建 DTO
             PackageCreateDTO.Contact sender = PackageCreateDTO.Contact.builder()
@@ -68,6 +69,7 @@ public class ExpressRefuseInspectAction implements InspectAction {
             log.error("[ExpressInspectAction] 远程调用异常, boId={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建验收退回运单失败");
         }
-        return AftersaleOrder.CANCEL;
+
+        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
     }
 }

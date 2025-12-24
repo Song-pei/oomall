@@ -7,21 +7,28 @@ spring:
   application:
     name: aftersale
   cloud:
-      compatibility-verifier:
-       enabled: false
-      nacos:
-        discovery:
-          enabled: false
-        config:
-          enabled: false
+    compatibility-verifier:
+      enabled: false
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
   config:
     import: classpath:strategy-rules.yml
 
   autoconfigure:
-      exclude:
-        - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
-        - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 16379
+      database: 0
+      password: 123456
+      repositories:
+        enabled: false
   datasource:
     #JDBC drivers
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -30,15 +37,22 @@ spring:
     #    url: jdbc:mysql://mysql:3306Asia/Shanghai
     #database username and password
     username: "root"
-    password: "lgz123456"
+    password: "123456"
 server:
-  port: 8081
+  port: 8080
 
 service-module:
   url: http://localhost:8085
 
-"logistics-module":
-  url: http://localhost:8090
+prodorder-module:
+  url: prodorder:8080
+
+payment-module:
+  url: payment:8080
+
+logistics-module:
+  url: logistics:8080
+
 oomall:
   core:
     page-size:

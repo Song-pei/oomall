@@ -11,6 +11,7 @@ import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.OrderClient;
 import cn.edu.xmu.oomall.aftersale.service.feign.PaymentClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import cn.edu.xmu.oomall.aftersale.service.vo.PayTransVo;
 import cn.edu.xmu.oomall.aftersale.service.vo.RefundTransVo;
 import jakarta.annotation.Resource;
@@ -26,7 +27,7 @@ public class RefundInspectAction implements InspectAction {
     private PaymentClient paymentClient;
 
     @Override
-    public Integer execute(AftersaleOrder bo, UserToken user){
+    public <T> ActionResult<T> execute(AftersaleOrder bo, UserToken user){
         log.info("[RefundInspectAction]开始执行退款验收通过逻辑: aftersaleId={}", bo.getId());
 
         try{
@@ -93,6 +94,7 @@ public class RefundInspectAction implements InspectAction {
             log.error("[RefundInspectAction] 远程调用异常, aftersaleId={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
-        return AftersaleOrder.UNREFUND;
+
+        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.UNREFUND);
     }
 }
