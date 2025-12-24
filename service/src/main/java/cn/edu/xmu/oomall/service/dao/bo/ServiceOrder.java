@@ -181,7 +181,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
 
         if (action == null) {
             log.error("未找到接受策略: type={}, status={}", this.type, this.status);
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的接受策略");
+            throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的接受策略");
         }
 
         // 3. 执行策略并获取目标状态
@@ -208,7 +208,7 @@ public class ServiceOrder extends OOMallObject implements Serializable {
         // 通过策略路由找到具体的取消策略
         CancelAction action = strategyRouter.route(this.type, this.status, "CANCEL", CancelAction.class);
         if (action == null) {
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的取消策略");
+            throw new BusinessException(ReturnNo.FIELD_NOTVALID, "未配置该类型的取消策略");
         }
 
         // 执行策略获取目标状态
@@ -265,6 +265,16 @@ public class ServiceOrder extends OOMallObject implements Serializable {
             this.cancel(user, strategyRouter);
         }
     }
+    /**
+     * 维修师傅退回，维修中 -> 待派工
+     */
+    public void backServiceOrder(UserToken user) {
+        if (!REPAIRING.equals(this.status)) {
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许退回待派工");
+        }
+        this.changeStatus(UNASSIGNED, user);
+    }
+
     public Long getId() {
         return id;
     }
@@ -272,47 +282,6 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-    public Long getShopId() { return shopId; }
-    public void setShopId(Long shopId) { this.shopId = shopId; }
-
-    public Byte getType() { return type; }
-    public void setType(Byte type) { this.type = type; }
-
-    public Byte getStatus() { return status; }
-    public void setStatus(Byte status) { this.status = status; }
-
-    public String getConsignee() { return consignee; }
-    public void setConsignee(String consignee) { this.consignee = consignee; }
-
-    public String getMobile() { return mobile; }
-    public void setMobile(String mobile) { this.mobile = mobile; }
-
-    public Long getRegionId() { return regionId; }
-    public void setRegionId(Long regionId) { this.regionId = regionId; }
-
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-
-    public Long getMaintainerId() { return maintainerId; }
-    public void setMaintainerId(Long maintainerId) { this.maintainerId = maintainerId; }
-
-    public String getMaintainerName() { return maintainerName; }
-    public void setMaintainerName(String maintainerName) { this.maintainerName = maintainerName; }
-
-    public String getMaintainerMobile() { return maintainerMobile; }
-    public void setMaintainerMobile(String maintainerMobile) { this.maintainerMobile = maintainerMobile; }
-
-    public String getResult() { return result; }
-    public void setResult(String result) { this.result = result; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
-
-    public String getSerialNo() { return serialNo; }
-    public void setSerialNo(String serialNo) { this.serialNo = serialNo; }
 
     public Long getCreatorId() {
         return creatorId;

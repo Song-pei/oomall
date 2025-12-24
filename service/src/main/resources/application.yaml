@@ -82,4 +82,6 @@ logging:
   level:
     cn.edu.xmu.javaee.core: debug
     cn.edu.xmu.oomall.service: debug
+logistics-module:
+  url: http://localhost:9090
 
