@@ -120,6 +120,18 @@ public class AftersaleOrderService {
         log.info("[ServiceFind] 取消完成: boId={}, 新状态={}", id, po.getStatus());
     }
 
+    /**
+     * 顾客根据id,查询售后单
+     */
+    public  AftersaleOrder customerSearch(Long id,UserToken user)
+    {
+       AftersaleOrderPo po = aftersaleOrderDao.findById(id);
+       if (po == null) { throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");}
+        // 2. 转为 BO
+        AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+       return bo;
+
+    }
 
     public void inspect(Long shopId ,Long id, String exceptionDescription, boolean confirm, UserToken user) {
         log.info("开始验收售后单: shopId={}, id={}, confirm={}, user={}", shopId, id, confirm, user);

@@ -1,6 +1,13 @@
 ### 变量定义 (你可以根据实际启动端口修改)
 @host = http://localhost:8081
 
+
+### 顾客根据 id 查询售后单（成功场景）
+# @name getAftersaleById
+GET {{host}}/aftersales/1
+Content-Type: application/json
+Authorization: customer-test
+
 ### 1. 获取售后列表 (对应 getAftersales 测试)
 # 预期正确码: 200 (ReturnNo.OK   data——售后单列表)
 GET {{host}}/shops/1/aftersales
@@ -45,7 +52,7 @@ Content-Type: application/json
 
 ### 3. 审核售后单 - 成功 - 同意
 # 预期正确码: 200 (ReturnNo.OK)
-PUT {{host}}/shops/1/aftersales/1/confirm
+PUT {{host}}/shops/1/aftersales/2/confirm
 Content-Type: application/json
 
 {

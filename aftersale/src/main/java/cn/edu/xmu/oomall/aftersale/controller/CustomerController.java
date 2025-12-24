@@ -29,6 +29,44 @@ public class CustomerController {
 
     private final AftersaleOrderService aftersaleOrderService;
     /**
+     * 顾客根据id查询售后单信息
+     */
+    @GetMapping("/aftersales/{id}")
+    public ReturnObject customerSearch(
+            @PathVariable Long id,UserToken user){
+        log.info("收到顾客查询售后单请求:  id={}, user={}",  id, user);
+
+        // 如果没有登录（测试环境下），手动创建一个模拟的顾客
+        if (user == null || user.getId() == null || user.getName() == null) {
+            log.warn("检测到用户信不完整 (id={}, name={})，启用 Mock 用户",
+                    (user != null ? user.getId() : "null"),
+                    (user != null ? user.getName() : "null"));
+            user = new UserToken();
+            user.setId(1L);
+            user.setName("customer-test");
+            user.setDepartId(0L);
+            user.setUserLevel(0);
+        }
+        try {
+
+            AftersaleOrder bo=aftersaleOrderService.customerSearch(id, user);
+            log.info("售后单查询成功: id={}", id);
+            AftersaleOrderVo vo = CloneFactory.copy(new AftersaleOrderVo(), bo);
+            return new ReturnObject(vo);
+
+        }catch (BusinessException e){
+
+            // 资源不存在
+            if (e.getErrno() == ReturnNo.RESOURCE_ID_NOTEXIST) {
+                log.warn("取消失败(资源不存在): id={}", id);
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            // 其余 BusinessException（远程失败等）继续抛出 -> HTTP 500
+            throw e;
+        }
+
+    }
+    /**
      *顾客取消某一售后单
      * @param id
      * @param user
@@ -55,7 +93,7 @@ public class CustomerController {
 
         try {
 
-            aftersaleOrderService.customerCancel(id, user);
+             aftersaleOrderService.customerCancel(id, user);
             log.info("售后单取消成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
 
