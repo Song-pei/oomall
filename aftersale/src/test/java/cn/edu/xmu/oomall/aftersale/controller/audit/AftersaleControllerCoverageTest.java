@@ -210,7 +210,7 @@ public class AftersaleControllerCoverageTest {
 
         // 方法签名变更：补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("ok", "ok", true, strategyRouter, user, aftersaleOrderDao)
+                bo.audit("ok", "ok", true, strategyRouter, user)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }
@@ -226,7 +226,7 @@ public class AftersaleControllerCoverageTest {
 
         // 方法签名变更：补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("同意", "原因", true, strategyRouter, user, aftersaleOrderDao)
+                bo.audit("同意", "原因", true, strategyRouter, user)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }
@@ -245,7 +245,7 @@ public class AftersaleControllerCoverageTest {
 
         // 补充 user 和 dao 参数
         BusinessException ex = assertThrows(BusinessException.class, () ->
-                bo.audit("同意", "原因", true, strategyRouter, user, aftersaleOrderDao)
+                bo.audit("同意", "原因", true, strategyRouter, user)
         );
         assertEquals(ReturnNo.STATENOTALLOW, ex.getErrno());
     }

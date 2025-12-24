@@ -8,10 +8,7 @@ import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
@@ -80,6 +77,10 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     @JsonIgnore
     @ToString.Exclude
     public static final Integer FINISH = 7;
+
+    @Setter
+    @JsonIgnore
+    private  AftersaleOrderDao dao;
 
     @JsonIgnore
     @ToString.Exclude
@@ -160,7 +161,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 审核售后单
      */
-    public ActionResult<?> audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router, UserToken user, AftersaleOrderDao dao) {
+    public ActionResult<?> audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router, UserToken user) {
         if (!UNAUDIT.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
         }
@@ -215,7 +216,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 顾客取消售后单
      */
-    public ActionResult<?> customerCancel(StrategyRouter router, UserToken user, AftersaleOrderDao dao) {
+    public ActionResult<?> customerCancel(StrategyRouter router, UserToken user) {
         CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
 
         if (action == null) {
@@ -248,7 +249,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 验收售后单
      */
-    public ActionResult<?> inspect(String exceptionDescription, boolean confirm, StrategyRouter router, UserToken user, AftersaleOrderDao dao) {
+    public ActionResult<?> inspect(String exceptionDescription, boolean confirm, StrategyRouter router, UserToken user) {
         if (!UNCHECK.equals(this.status)) {
             log.info("当前状态不允许验收: id={}, status={}", this.id, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");

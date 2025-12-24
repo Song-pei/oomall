@@ -12,6 +12,7 @@ import cn.edu.xmu.javaee.core.model.UserToken;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +34,11 @@ import java.util.stream.Collectors;
 public class AftersaleOrderDao {
 
     private final AftersaleOrderPoMapper aftersaleOrderPoMapper;
+
+    private AftersaleOrderDao aftersaleOrderDao;
+    public void build(AftersaleOrder bo) {
+        bo.setDao(this);
+    }
 
     /**
      * 分页查询所有售后单

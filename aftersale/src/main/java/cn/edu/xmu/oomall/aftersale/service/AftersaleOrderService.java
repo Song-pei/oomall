@@ -9,6 +9,7 @@ import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,6 +25,7 @@ import java.util.Objects;
 public class AftersaleOrderService {
 
     private final StrategyRouter strategyRouter;
+    @Setter
     private final AftersaleOrderDao aftersaleOrderDao;
 
 
@@ -53,8 +55,9 @@ public class AftersaleOrderService {
                 throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, "无权查看其他店铺的售后单");
             }
         }
-
-        return CloneFactory.copy(new AftersaleOrder(), po);
+        AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        aftersaleOrderDao.build(bo);
+        return bo;
     }
 
     /**
@@ -76,6 +79,7 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        aftersaleOrderDao.build(bo);
 
         if (!Objects.equals(bo.getShopId(), shopId)) {
             log.warn("审核失败: 店铺不匹配, id={}, shopId={}, targetShopId={}", id, bo.getShopId(), shopId);
@@ -87,7 +91,7 @@ public class AftersaleOrderService {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
         }
 
-        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategyRouter, user, aftersaleOrderDao);
+        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategyRouter, user);
 
         log.info("[ServiceFind] 审核完成: boId={}, 结果={}, reason={}", id, confirm, reason);
     }
@@ -105,6 +109,7 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        aftersaleOrderDao.build(bo);
         if  (  !(Objects.equals(bo.getStatus(), AftersaleOrder.UNAUDIT))
                 &&!(Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
                 &&!(Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
@@ -112,7 +117,7 @@ public class AftersaleOrderService {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
 
-        bo.customerCancel(strategyRouter, user, aftersaleOrderDao);
+        bo.customerCancel(strategyRouter, user);
 
         log.info("[ServiceFind] 取消完成: boId={}, 新状态={}", id, bo.getStatus());
     }
@@ -126,6 +131,7 @@ public class AftersaleOrderService {
         AftersaleOrderPo po = aftersaleOrderDao.findById(id);
         if (po == null) { throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");}
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        aftersaleOrderDao.build(bo);
         return bo;
     }
 
@@ -143,13 +149,14 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
+        aftersaleOrderDao.build(bo);
 
         if (!Objects.equals(bo.getShopId(), shopId)) {
             log.warn("验收失败: 店铺不匹配, id={}, shopId={}, targetShopId={}", id, bo.getShopId(), shopId);
             throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, "无权操作该店铺订单");
         }
 
-        bo.inspect(exceptionDescription, confirm, strategyRouter, user, aftersaleOrderDao);
+        bo.inspect(exceptionDescription, confirm, strategyRouter, user);
 
         log.info("[Service] 验收完成: boId={}, 结果={}", id, confirm);
     }
