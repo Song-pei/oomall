@@ -59,6 +59,8 @@ public class FixAuditAction implements AuditAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
+            return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.GENERATE_SERVICEORDER);
+
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
@@ -66,7 +68,6 @@ public class FixAuditAction implements AuditAction {
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
         // 4. 返回新的状态：已生成服务单(3)
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.GENERATE_SERVICEORDER);
     }
 
 }

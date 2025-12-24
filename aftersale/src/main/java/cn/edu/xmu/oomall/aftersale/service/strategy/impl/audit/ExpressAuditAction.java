@@ -70,8 +70,8 @@ public class ExpressAuditAction implements AuditAction {
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 PackageResponseDTO packageVo = ret.getData();
 
-                bo.setCustomerExpressId(packageVo.getId());
-                log.info("[ExpressAuditAction] 运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
+              //  bo.setCustomerExpressId(packageVo.getId());
+                log.info("[ExpressAuditAction] 运单创建成功, ID: {}, 单号: {}", packageVo.getExpressId(), packageVo.getBillCode());
 
 
             } else {
@@ -79,14 +79,13 @@ public class ExpressAuditAction implements AuditAction {
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
 
+            return (ActionResult<T>) ActionResult.success(ret.getData(), AftersaleOrder.UNCHECK);
+
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
             log.error("[ExpressAuditAction] 远程调用异常, boId={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建退货运单失败");
         }
-
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.UNCHECK);
-
     }
 }

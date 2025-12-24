@@ -376,7 +376,7 @@ public class AftersaleControllerCoverageTest {
 
     @Test
     public void service_Audit_ResourceNotExist() {
-        AftersaleOrderService manualService = new AftersaleOrderService(null, null);
+        AftersaleOrderService manualService = new AftersaleOrderService(null, null,null,null);
         ReflectionTestUtils.setField(manualService, "aftersaleOrderDao", aftersaleOrderDao);
         Mockito.when(aftersaleOrderDao.findById(any())).thenReturn(null);
 
@@ -389,7 +389,7 @@ public class AftersaleControllerCoverageTest {
 
     @Test
     public void service_Audit_ShopIdMismatch() {
-        AftersaleOrderService manualService = new AftersaleOrderService(null, null);
+        AftersaleOrderService manualService = new AftersaleOrderService(null, null,null,null);
         ReflectionTestUtils.setField(manualService, "aftersaleOrderDao", aftersaleOrderDao);
 
         AftersaleOrderPo mockPo = new AftersaleOrderPo();
@@ -407,7 +407,7 @@ public class AftersaleControllerCoverageTest {
 
     @Test
     public void service_Audit_StatusNotAllow() {
-        AftersaleOrderService manualService = new AftersaleOrderService(null, null);
+        AftersaleOrderService manualService = new AftersaleOrderService(null, null,null,null);
         ReflectionTestUtils.setField(manualService, "aftersaleOrderDao", aftersaleOrderDao);
 
         AftersaleOrderPo mockPo = new AftersaleOrderPo();

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PackageResponseDTO {
 
-    private Long id;
+    private Long expressId;
 
     // 修改这里：必须叫 billCode，对应物流模块 SimpleExpressVo 的 billCode
     private String billCode;

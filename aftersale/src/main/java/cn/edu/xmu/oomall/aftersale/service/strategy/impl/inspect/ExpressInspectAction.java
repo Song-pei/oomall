@@ -54,16 +54,16 @@ public class ExpressInspectAction implements InspectAction {
                     token
             );
             if (ret.getErrno() == 0 && ret.getData() != null) {
-                PackageResponseDTO packageVo = ret.getData();
+               PackageResponseDTO packageVo = ret.getData();
 
-                bo.setShopExpressId(ret.getData().getId());// 设置换货运单ID
+              //  bo.setShopExpressId(ret.getData().getExpressId());// 设置换货运单ID
 
-                log.info("[ExpressAuditAction] 换货运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
+                log.info("[ExpressAuditAction] 换货运单创建成功, ID: {}, 单号: {}", packageVo.getExpressId(), packageVo.getBillCode());
             } else {
                 log.error("[ExpressAuditAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
-
+            return (ActionResult<T>) ActionResult.success(ret.getData(), AftersaleOrder.UNCHANGE);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
@@ -71,6 +71,6 @@ public class ExpressInspectAction implements InspectAction {
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建换货运单失败");
         }
 
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.UNCHANGE);
+
     }
 }

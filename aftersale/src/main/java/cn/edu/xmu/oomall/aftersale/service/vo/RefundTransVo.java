@@ -1,7 +1,6 @@
 //School of Informatics Xiamen University, GPL-3.0 license
 package cn.edu.xmu.oomall.aftersale.service.vo;
 
-import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.javaee.core.model.IdNameTypeVo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RefundTransVo {
-    private Long id;
+    private Long refundId;
     private String outNo;
     private String transNo;
     private Long amount;

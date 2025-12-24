@@ -7,8 +7,11 @@ import cn.edu.xmu.javaee.core.util.CloneFactory;
 import cn.edu.xmu.oomall.aftersale.AftersaleApplication;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
+import cn.edu.xmu.oomall.aftersale.dao.ExpressDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
+import cn.edu.xmu.oomall.aftersale.dao.bo.Express;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.mapper.po.ExpressPo;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +66,9 @@ public class ExpressCancelActionTest {
     @Autowired
     private AftersaleOrderDao aftersaleOrderDao;
 
+    @Autowired
+    private ExpressDao expressDao;
+
     @MockitoBean
     private ExpressClient expressClient;
 
@@ -80,12 +86,22 @@ public class ExpressCancelActionTest {
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
         bo.setType(1);                       // 类型只能是0/1
         bo.setStatus(AftersaleOrder.UNCHECK); // 待验收
-        bo.setCustomerExpressId(9999L);              // 模拟已创建物流单
         bo.setCustomerName("测试用户李四");
         bo.setCustomerMobile("13987654321");
 
         AftersaleOrderPo toSavePo = CloneFactory.copy(po, bo);
         aftersaleOrderDao.update(toSavePo);
+
+        Express expressBo= new Express();
+        expressBo.setExpressId(9999L);
+        expressBo.setAftersaleOrderId(targetId);
+        expressBo.setStatus((byte)0);
+        expressBo.setBillCode("SF_TEST_9999");
+        expressBo.setType(bo.getType());
+        expressBo.setDirection(0);
+
+        ExpressPo expressPo= CloneFactory.copy(new ExpressPo(),expressBo);
+        expressDao.save(expressPo);
     }
 
     /**

@@ -8,6 +8,7 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceFind;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
+import cn.edu.xmu.oomall.aftersale.dao.bo.Express;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.CancelAction;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import jakarta.annotation.Resource;
@@ -26,7 +27,7 @@ public class ServiceCancelAction implements CancelAction {
     @Resource
     private ServiceOrderClient serviceOrderClient;
     @Override
-    public <T> ActionResult<T> execute(AftersaleOrder bo, UserToken user) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo, Express express, UserToken user) {
         log.info("[ServiceCancelAction] 命中服务单取消策略，boId={}", bo.getId());
         // 必须存在服务单号
         if (bo.getServiceOrderId() == null) {
@@ -82,13 +83,11 @@ public class ServiceCancelAction implements CancelAction {
                 log.error("[ServiceCancelAction] 服务模块取消错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
-
+            //取消状态变更为 已取消
+            return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
         } catch (Exception e2) {
             log.error("[ServiceCancelAction] 远程调用取消异常, boId={}", bo.getId(), e2);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
-        //取消状态变更为 已取消
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
     }
-
 }

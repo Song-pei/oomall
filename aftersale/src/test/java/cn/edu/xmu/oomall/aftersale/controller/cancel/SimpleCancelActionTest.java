@@ -2,6 +2,8 @@ package cn.edu.xmu.oomall.aftersale.controller.cancel;
 
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
+import cn.edu.xmu.oomall.aftersale.dao.bo.Express;
+import cn.edu.xmu.oomall.aftersale.mapper.po.ExpressPo;
 import cn.edu.xmu.oomall.aftersale.service.strategy.impl.cancel.SimpleCancelAction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +28,8 @@ public class SimpleCancelActionTest {
 
         SimpleCancelAction action = new SimpleCancelAction();
         UserToken userToken = new UserToken();
-        action.execute(mockAftersaleOrder,userToken);
+        Express express = null;
+        action.execute(mockAftersaleOrder,express,userToken);
 
         // 指定调用次数为 2 次
         Mockito.verify(mockAftersaleOrder, Mockito.times(2)).getId();

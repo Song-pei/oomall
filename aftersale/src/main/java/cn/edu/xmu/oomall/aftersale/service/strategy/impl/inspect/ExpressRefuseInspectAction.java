@@ -54,15 +54,13 @@ public class ExpressRefuseInspectAction implements InspectAction {
             );
             if (ret.getErrno() == 0 && ret.getData() != null) {
                 PackageResponseDTO packageVo = ret.getData();
-
-                bo.setShopExpressId(ret.getData().getId());// 设置运单ID
-
-                log.info("[ExpressAuditAction] 验收退回运单创建成功, ID: {}, 单号: {}", packageVo.getId(), packageVo.getBillCode());
+                //bo.setShopExpressId(ret.getData().getExpressId());// 设置运单ID
+                log.info("[ExpressAuditAction] 验收退回运单创建成功, ID: {}, 单号: {}", packageVo.getExpressId(), packageVo.getBillCode());
             } else {
                 log.error("[ExpressAuditAction] 物流模块返回错误: {}", ret.getErrmsg());
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, ret.getErrmsg());
             }
-
+            return (ActionResult<T>) ActionResult.success(ret.getData(), AftersaleOrder.CANCEL);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception e) {
@@ -70,6 +68,6 @@ public class ExpressRefuseInspectAction implements InspectAction {
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建验收退回运单失败");
         }
 
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.CANCEL);
+
     }
 }

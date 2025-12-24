@@ -1,6 +1,9 @@
 package cn.edu.xmu.oomall.aftersale.dao.bo;
 
 import cn.edu.xmu.javaee.core.clonefactory.CopyFrom;
+import cn.edu.xmu.javaee.core.clonefactory.CopyTo;
+import cn.edu.xmu.javaee.core.model.UserToken;
+import cn.edu.xmu.oomall.aftersale.mapper.po.RefundPo;
 import cn.edu.xmu.oomall.aftersale.service.vo.RefundTransVo;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Data
 @NoArgsConstructor
+@CopyTo(RefundPo.class)
 @CopyFrom(RefundTransVo.class)
 public class Refund {
     @Id
@@ -31,4 +35,15 @@ public class Refund {
     private String modifierName;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
+
+    public void setModifier(UserToken user) {
+        if (user != null) {
+            this.setModifierId(user.getId());
+            this.setModifierName(user.getName());
+        } else {
+            this.setModifierId(0L);
+            this.setModifierName("System");
+        }
+        this.setGmtModified(LocalDateTime.now());
+    }
 }

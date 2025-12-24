@@ -4,18 +4,26 @@ import cn.edu.xmu.javaee.core.exception.BusinessException;
 import cn.edu.xmu.javaee.core.model.ReturnNo;
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.javaee.core.util.CloneFactory;
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageCreateDTO;
+import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
+import cn.edu.xmu.oomall.aftersale.dao.ExpressDao;
+import cn.edu.xmu.oomall.aftersale.dao.RefundDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
+import cn.edu.xmu.oomall.aftersale.dao.bo.Express;
+import cn.edu.xmu.oomall.aftersale.dao.bo.Refund;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.mapper.po.ExpressPo;
+import cn.edu.xmu.oomall.aftersale.mapper.po.RefundPo;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
+import cn.edu.xmu.oomall.aftersale.service.vo.RefundTransVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +35,8 @@ public class AftersaleOrderService {
 
     private final StrategyRouter strategyRouter;
     private final AftersaleOrderDao aftersaleOrderDao;
+    private final ExpressDao expressDao;
+    private final RefundDao refundDao;
 
     /**
      * 分页查询所有售后单
@@ -98,9 +108,22 @@ public class AftersaleOrderService {
         }
 
         // 4. 执行 BO 业务逻辑
-        bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategyRouter);
-
-        // 5. BO 更新审计信息
+        ActionResult<?> actionResult= bo.audit(conclusion, reason, Boolean.TRUE.equals(confirm), strategyRouter);
+        Object dataObj = actionResult.getData();
+        if(dataObj!=null) {
+            if (dataObj instanceof PackageResponseDTO dto) {
+                log.info("数据库增加物流单ID={}", dto.getExpressId());
+                Express express = CloneFactory.copy(new Express(), dto);
+                express.setDirection(1);//商户寄到顾客
+                express.setType(bo.getType());
+                express.setStatus((byte) 0);//未发货
+                express.setAftersaleOrderId(bo.getId());
+                express.setModifier(user);
+                ExpressPo expressPo = CloneFactory.copy(new ExpressPo(), express);
+                expressDao.save(expressPo);
+            }
+        }
+            // 5. BO 更新审计信息
         bo.setModifier(user);
 
         // 6. 将 BO (包含状态变更和审计信息) 同步回 PO
@@ -133,11 +156,16 @@ public class AftersaleOrderService {
         ) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
-
-
+        List<ExpressPo> expressPoList =expressDao.findByAftersaleOrderId(bo.getId());
+        Express express = null;
+        if (expressPoList != null && !expressPoList.isEmpty()) {
+            ExpressPo expressPo = expressPoList.getFirst();
+            express = CloneFactory.copy(new Express(), expressPo);
+        } else {
+            express = new Express();
+        }
         // 4. 执行 BO 业务逻辑
-        bo.customerCancel(strategyRouter,user);
-
+        ActionResult<?> actionResult=bo.customerCancel(strategyRouter,express,user);
         // 5.BO 更新审计信息
         bo.setModifier(user);
 
@@ -183,8 +211,29 @@ public class AftersaleOrderService {
         }
 
         // 4. 执行 BO 业务逻辑
-        bo.inspect(exceptionDescription, confirm, strategyRouter, user);
-
+        ActionResult<?> actionResult=bo.inspect(exceptionDescription, confirm, strategyRouter, user);
+        Object dataObj = actionResult.getData();
+        if(dataObj!=null) {
+            if (dataObj instanceof PackageResponseDTO dto) {
+                log.info("数据库增加物流单ID={}", dto.getExpressId());
+                Express express = CloneFactory.copy(new Express(), dto);
+                express.setDirection(1);//商户寄到顾客
+                express.setType(bo.getType());
+                express.setStatus((byte) 0);//未发货
+                express.setAftersaleOrderId(bo.getId());
+                express.setModifier(user);
+                ExpressPo expressPo = CloneFactory.copy(new ExpressPo(), express);
+                expressDao.save(expressPo);
+            } else if (dataObj instanceof RefundTransVo refundTransVo) {
+                log.info("数据库增加退款单ID={}", refundTransVo.getRefundId());
+                Refund refund = CloneFactory.copy(new Refund(), refundTransVo);
+                refund.setAftersaleOrderId(bo.getId());
+                refund.setStatus((byte)0);
+                refund.setModifier(user);
+                RefundPo refundPo = CloneFactory.copy(new RefundPo(), refund);
+                refundDao.save(refundPo);
+            }
+        }
         // 5. BO 更新审计信息
         bo.setModifier(user);
 

@@ -7,8 +7,12 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.OrderResponseDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageCreateDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
+import cn.edu.xmu.oomall.aftersale.dao.ExpressDao;
+import cn.edu.xmu.oomall.aftersale.dao.RefundDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
+import cn.edu.xmu.oomall.aftersale.mapper.po.ExpressPo;
+import cn.edu.xmu.oomall.aftersale.mapper.po.RefundPo;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.aftersale.service.feign.OrderClient;
 import cn.edu.xmu.oomall.aftersale.service.feign.PaymentClient;
@@ -30,6 +34,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional(propagation = Propagation.REQUIRED)
 @Import(ShopControllerTest.MockConfig.class)
-@Rollback(true)
+@Rollback(value = true)
 public class ShopControllerTest {
     @TestConfiguration
     static class MockConfig {
@@ -68,6 +74,10 @@ public class ShopControllerTest {
     private OrderClient orderClient;
     @MockitoBean
     private PaymentClient paymentClient;
+    @Autowired
+    private ExpressDao expressDao;
+    @Autowired
+    private RefundDao refundDao;
 
     @Test
     public void getAftersales() throws Exception {
@@ -78,32 +88,6 @@ public class ShopControllerTest {
                 .andExpect(jsonPath("$.data").isArray())
                 .andDo(print());
     }
-
-//    @Test
-//    public void auditAftersale() throws Exception {
-//        String requestBody = "{\"confirm\": true, \"conclusion\": \"同意\", \"reason\": \"质量问题\"}";
-//
-//        mockMvc.perform(put("/shops/1/aftersales/1/confirm")
-//                        .header("authorization", "Bearer test-token")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(requestBody))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.errno").value(0))
-//                .andDo(print());
-//    }
-//    @Test
-//    public void auditAftersale_missingConfirm() throws Exception {
-//        String requestBody = "{\"conclusion\": \"同意退款\", \"reason\": \"质量问题\"}";
-//
-//        mockMvc.perform(put("/shops/1/aftersales/1/confirm")
-//                        .header("authorization", "Bearer test-token")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(requestBody))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.errno").value(706)) // AFTERSALE_AUDIT_RESULT_EMPTY
-//                .andDo(print());
-//    }
-
     //测试验收售后单，售后单不存在
     @Test
     public void inspectAftersale_notExist() throws Exception {
@@ -172,9 +156,16 @@ public class ShopControllerTest {
         assertEquals(AftersaleOrder.CANCEL.byteValue(), updatedPo.getStatus());
         assertEquals("异常", updatedPo.getExceptionDescription());
 
+
         // 验证 express_id 是否成功从 Feign 返回值保存到了数据库
-        assertNotNull(updatedPo.getShopExpressId(), "shop_express_id 应该被保存到数据库中");
-        assertEquals(expectedExpressId, updatedPo.getShopExpressId(), "数据库中的 express_id 应与 Mock 返回的一致");
+        List<ExpressPo> expressPoList=expressDao.findByAftersaleOrderId(updatedPo.getId());
+        //找出对应的运单
+        ExpressPo expressPo= expressPoList.stream()
+                .filter(po -> po.getExpressId().equals(expectedExpressId))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(expressPo.getExpressId(), "shop_express_id 应该被保存到数据库中");
+        assertEquals(expectedExpressId, expressPo.getExpressId(), "数据库中的 express_id 应与 Mock 返回的一致");
     }
     //测试验收售后单,不通过,运单创建失败
     @Test
@@ -222,8 +213,14 @@ public class ShopControllerTest {
         // 验证基本状态
         assertEquals(AftersaleOrder.UNCHANGE.byteValue(), updatedPo.getStatus());
         // 验证 express_id 是否成功从 Feign 返回值保存到了数据库
-        assertNotNull(updatedPo.getShopExpressId(), "shop_express_id 应该被保存到数据库中");
-        assertEquals(expectedExpressId, updatedPo.getShopExpressId(), "数据库中的 express_id 应与 Mock 返回的一致");
+        List<ExpressPo> expressPoList=expressDao.findByAftersaleOrderId(updatedPo.getId());
+        //找出对应的运单
+        ExpressPo expressPo= expressPoList.stream()
+                .filter(po -> po.getExpressId().equals(expectedExpressId))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(expressPo.getExpressId(), "shop_express_id 应该被保存到数据库中");
+        assertEquals(expectedExpressId, expressPo.getExpressId(), "数据库中的 express_id 应与 Mock 返回的一致");
 
     }
     //测试验收售后单,换货通过,运单创建失败
@@ -265,7 +262,9 @@ public class ShopControllerTest {
                 .thenReturn(successPaymentRet);
 
         RefundTransVo mockRefundResponse = new RefundTransVo();
-        mockRefundResponse.setId(999L);
+        mockRefundResponse.setRefundId(999L);
+        mockRefundResponse.setAmount(100L);
+        mockRefundResponse.setDivAmount(100L);
         InternalReturnObject<RefundTransVo> successRefundRet = new InternalReturnObject<>(mockRefundResponse);
         Mockito.when(paymentClient.createRefund(anyLong(), anyLong(), any(), any()))
                 .thenReturn(successRefundRet);
@@ -284,7 +283,15 @@ public class ShopControllerTest {
         AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(3L);
         // 验证基本状态
         assertEquals(AftersaleOrder.UNREFUND.byteValue(), updatedPo.getStatus());
-        assertEquals(999L, updatedPo.getRefundId());
+        // 验证 refund_id 是否成功从 Feign 返回值保存到了数据库
+        List<RefundPo> RefundPoList= refundDao.findByAftersaleOrderId(updatedPo.getId());
+        //找出对应的退款单
+        RefundPo refundPo= RefundPoList.stream()
+                .filter(po -> po.getRefundId().equals(999L))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(refundPo.getRefundId(), "refund_id 应该被保存到数据库中");
+        assertEquals(999L, refundPo.getRefundId());
     }
     //测试验收售后单,通过,退货,未找到订单
     @Test

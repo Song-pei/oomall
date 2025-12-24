@@ -78,15 +78,13 @@ public class RefundInspectAction implements InspectAction {
             );
 
             if(refundTransRet.getErrno()==0&& refundTransRet.getData()!=null){
-                log.info("[RefundInspectAction] 退款单创建成功: aftersaleId={}, refundId={}", bo.getId(), refundTransRet.getData().getId());
+                log.info("[RefundInspectAction] 退款单创建成功: aftersaleId={}, refundId={}", bo.getId(), refundTransRet.getData().getRefundId());
             }
             else{
                 log.error("[RefundInspectAction] 退款单创建失败: paymentId={}", paymentId);
                 throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, refundTransRet.getErrmsg());
             }
-
-            bo.setRefundId(refundTransRet.getData().getId());// 设置退款单ID
-
+            return (ActionResult<T>) ActionResult.success(refundTransRet.getData(), AftersaleOrder.UNREFUND);
         }catch (BusinessException be){
             throw be;
         }
@@ -94,7 +92,5 @@ public class RefundInspectAction implements InspectAction {
             log.error("[RefundInspectAction] 远程调用异常, aftersaleId={}", bo.getId(), e);
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL);
         }
-
-        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.UNREFUND);
     }
 }
