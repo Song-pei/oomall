@@ -63,6 +63,9 @@ public class ServiceOrderService {
         serviceOrder.finish(result, user, strategyRouter);
         log.info("[Service] 完成: boId={}", id);
     }
+    /*
+    * 服务商验收包裹
+    * */
     public void receiveExpress(Long did,long id,String result, boolean accepted,UserToken user){
         ServiceOrder serviceOrder =  serviceOrderDao.findById(id);
         serviceOrder.receiveExpress(result,accepted,user,strategyRouter);
