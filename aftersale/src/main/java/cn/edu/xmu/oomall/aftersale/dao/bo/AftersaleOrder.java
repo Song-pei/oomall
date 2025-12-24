@@ -8,6 +8,7 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.InspectAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,7 +35,7 @@ import java.util.Set;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @CopyFrom(AftersaleOrderPo.class)
-public class AftersaleOrder extends OOMallObject implements Serializable{
+public class AftersaleOrder extends OOMallObject implements Serializable {
 
     private Long shopId;
     private Long customerId;
@@ -58,24 +59,58 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
     private Byte inArbitrated;
 
 
-    /** 待审核 */
-    @JsonIgnore @ToString.Exclude public static final Integer UNAUDIT = 0;
-    /** 待验收 */
-    @JsonIgnore @ToString.Exclude public static final Integer UNCHECK = 1;
-    /** 待换货 */
-    @JsonIgnore @ToString.Exclude public static final Integer UNCHANGE = 2;
-    /** 已生成服务单 */
-    @JsonIgnore @ToString.Exclude public static final Integer GENERATE_SERVICEORDER = 3;
-    /** 待退款 */
-    @JsonIgnore @ToString.Exclude public static final Integer UNREFUND = 4;
-    /** 取消 */
-    @JsonIgnore @ToString.Exclude public static final Integer CANCEL = 5;
-    /** 未接收 */
-    @JsonIgnore @ToString.Exclude public static final Integer NOTACCEPT = 6;
-    /** 已完成 */
-    @JsonIgnore @ToString.Exclude public static final Integer FINISH = 7;
+    /**
+     * 待审核
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer UNAUDIT = 0;
+    /**
+     * 待验收
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer UNCHECK = 1;
+    /**
+     * 待换货
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer UNCHANGE = 2;
+    /**
+     * 已生成服务单
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer GENERATE_SERVICEORDER = 3;
+    /**
+     * 待退款
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer UNREFUND = 4;
+    /**
+     * 取消
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer CANCEL = 5;
+    /**
+     * 未接收
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer NOTACCEPT = 6;
+    /**
+     * 已完成
+     */
+    @JsonIgnore
+    @ToString.Exclude
+    public static final Integer FINISH = 7;
 
-    /** 状态和名称的对应 */
+    /**
+     * 状态和名称的对应
+     */
     @JsonIgnore
     @ToString.Exclude
     public static final Map<Integer, String> STATUSNAMES = new HashMap() {{
@@ -89,7 +124,9 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
         put(FINISH, "已完成");
     }};
 
-    /** 允许的状态迁移 */
+    /**
+     * 允许的状态迁移
+     */
     @JsonIgnore
     @ToString.Exclude
     private static final Map<Integer, Set<Integer>> toStatus = new HashMap<>() {{
@@ -104,12 +141,16 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             add(UNREFUND);
             add(CANCEL);
         }});
-        put(UNCHANGE, new HashSet<>() {{ add(FINISH); }});
+        put(UNCHANGE, new HashSet<>() {{
+            add(FINISH);
+        }});
         put(GENERATE_SERVICEORDER, new HashSet<>() {{
             add(FINISH);
             add(CANCEL);
         }});
-        put(UNREFUND, new HashSet<>() {{ add(FINISH); }});
+        put(UNREFUND, new HashSet<>() {{
+            add(FINISH);
+        }});
     }};
 
     public boolean allowStatus(Integer status) {
@@ -144,6 +185,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
 
     /**
      * 填充审计信息（修改人、修改时间）
+     *
      * @param user 操作用户
      */
     public void setModifier(UserToken user) {
@@ -159,9 +201,11 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
 
     /**
      * 1. 审核售后单
+     *
      * @param router 传入策略路由工具
+     * @return ActionResult<?> 返回执行结果，包含可能的业务数据（如运单号）
      */
-    public void audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router) {
+    public ActionResult<?> audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router) {
         // 1. 基础状态校验
         if (!UNAUDIT.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
@@ -173,14 +217,14 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
                 this.status = NOTACCEPT;
                 this.conclusion = "不同意";
                 this.reason = reasonIn;
-                return; // 处理完直接结束
+                // 拒绝时，返回一个只有状态、没有数据的结果
+                return ActionResult.status((Integer) NOTACCEPT);
             } else {
                 throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态无法拒绝");
             }
         }
 
         // ============ 3. 主流程：审核通过 ============
-        // 能走到这里说明 confirm 为 true，无需 else
         this.conclusion = "同意";
         this.reason = null;
 
@@ -192,8 +236,15 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的审核策略");
         }
 
-        // 执行策略并获取目标状态
-        Integer nextStatus = action.execute(this, conclusionIn);
+        //  1：执行策略并获取结果包装对象 ActionResult
+        ActionResult<?> actionResult = action.execute(this, conclusionIn);
+
+        // 2：从包装对象中安全地提取 nextStatus
+        Integer nextStatus = null;
+        if (actionResult != null && actionResult.getNextStatus() != null) {
+            // 将 ActionResult 里的 Long 转换为 BO 里的 Integer
+            nextStatus = actionResult.getNextStatus().intValue();
+        }
 
         // 结合 allowStatus 校验状态流转是否合法
         if (nextStatus != null && this.allowStatus(nextStatus)) {
@@ -202,23 +253,37 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             log.error("审核通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "审核后状态流转异常");
         }
+
+        // 返回整个结果对象给 Service 层，以便 Service 拿到 data (如 T = PackageResponseDTO)
+        return actionResult;
     }
 
 
     /**
      * 2. 顾客取消售后单
+     *
      * @param router 传入策略路由工具
+     * @param user   当前操作用户
+     * @return ActionResult<?> 返回取消操作的结果
      */
-    public void customerCancel(StrategyRouter router,UserToken user) {
+    public ActionResult<?> customerCancel(StrategyRouter router, UserToken user) {
         // 1. 获取取消策略
         CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
 
-        Integer nextStatus = null;
-        if (action != null) {
-            // 执行策略
-            nextStatus = action.execute(this,user);
-
+        if (action == null) {
+            log.warn("未找到取消策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "当前业务类型不支持取消操作");
         }
+
+        //  1：执行策略并获取结果包装对象 ActionResult
+        ActionResult<?> actionResult = action.execute(this, user);
+
+        //  2：从包装对象中安全提取目标状态
+        Integer nextStatus = null;
+        if (actionResult != null && actionResult.getNextStatus() != null) {
+            nextStatus = actionResult.getNextStatus().intValue();
+        }
+
         // 2. 结合 allowStatus 校验状态流转是否合法
         if (nextStatus != null && this.allowStatus(nextStatus)) {
             this.status = nextStatus;
@@ -226,63 +291,79 @@ public class AftersaleOrder extends OOMallObject implements Serializable{
             log.warn("尝试取消订单失败，状态流转不允许: id={}, current={}, target={}", this.id, this.status, nextStatus);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
         }
+
+        // 3：返回结果对象（虽然取消操作通常 data 为空，但保持接口统一）
+        return actionResult;
     }
 
-     /**
+    /**
      * 3. 商户验收售后单
+     *
      * @param exceptionDescription 异常描述
-     * @param confirm 是否通过验收
-     * @param router 传入策略路由工具
+     * @param confirm              是否通过验收
+     * @param router               传入策略路由工具
+     * @return ActionResult<?> 返回验收结果对象，方便透传可能生成的业务数据
      */
-    public void inspect(String exceptionDescription,boolean confirm, StrategyRouter router,UserToken user) {
+    public ActionResult<?> inspect(String exceptionDescription, boolean confirm, StrategyRouter router, UserToken user) {
         // 1. 基础状态校验
         if (!UNCHECK.equals(this.status)) {
             log.info("当前状态不允许验收: id={}, status={}", this.id, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");
         }
+
         // ============ 2. 优先处理：验收拒绝 ============
         if (!confirm) {
             this.exceptionDescription = exceptionDescription;
             InspectAction refuseAction = router.route(this.type, this.status, "REFUSEINSPECT", InspectAction.class);
             if (refuseAction == null) {
-                log.error("未找到验收策略: type={}, status={}", this.type, this.status);
-                throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收策略");
+                log.error("未找到验收拒绝策略: type={}, status={}", this.type, this.status);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收拒绝策略");
             }
-            // 执行策略并获取目标状态
-            Integer refuseNextStatus = refuseAction.execute(this, user);
 
-            // 结合 allowStatus 校验状态流转是否合法
+            //  1：执行拒绝策略并获取 ActionResult
+            ActionResult<?> refuseResult = refuseAction.execute(this, user);
+
+            // 2：从结果中安全提取并转换状态码
+            Integer refuseNextStatus = (refuseResult != null && refuseResult.getNextStatus() != null)
+                    ? refuseResult.getNextStatus().intValue() : null;
+
+            // 结合 allowStatus 校验状态流转
             if (refuseNextStatus != null && this.allowStatus(refuseNextStatus)) {
                 this.status = refuseNextStatus;
             } else {
-                log.error("验收通过后试图流转到非法状态: current={}, next={}", this.status, refuseNextStatus);
-                throw new BusinessException(ReturnNo.STATENOTALLOW, "验收后状态流转异常");
+                log.error("验收拒绝后试图流转到非法状态: current={}, next={}", this.status, refuseNextStatus);
+                throw new BusinessException(ReturnNo.STATENOTALLOW, "验收拒绝状态流转异常");
             }
-            return; // 处理完直接结束
+            return refuseResult;
         }
 
-
         // ============ 3. 主流程：验收通过 ============
-        // 能走到这里说明 confirm 为 true，无需 else
         this.exceptionDescription = null;
 
         // 使用泛型 route 方法获取 InspectAction
         InspectAction action = router.route(this.type, this.status, "INSPECT", InspectAction.class);
 
         if (action == null) {
-            log.error("未找到验收策略: type={}, status={}", this.type, this.status);
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收策略");
+            log.error("未找到验收通过策略: type={}, status={}", this.type, this.status);
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收通过策略");
         }
 
-        // 执行策略并获取目标状态
-        Integer nextStatus = action.execute(this,user);
+        //  3：执行通过策略并获取 ActionResult
+        ActionResult<?> actionResult = action.execute(this, user);
 
-        // 结合 allowStatus 校验状态流转是否合法
+        // 4：提取并转换状态码
+        Integer nextStatus = (actionResult != null && actionResult.getNextStatus() != null)
+                ? actionResult.getNextStatus().intValue() : null;
+
+        // 结合 allowStatus 校验
         if (nextStatus != null && this.allowStatus(nextStatus)) {
             this.status = nextStatus;
         } else {
             log.error("验收通过后试图流转到非法状态: current={}, next={}", this.status, nextStatus);
-            throw new BusinessException(ReturnNo.STATENOTALLOW, "验收后状态流转异常");
+            throw new BusinessException(ReturnNo.STATENOTALLOW, "验收通过状态流转异常");
         }
+
+        //  5：返回结果对象给 Service 层
+        return actionResult;
     }
 }

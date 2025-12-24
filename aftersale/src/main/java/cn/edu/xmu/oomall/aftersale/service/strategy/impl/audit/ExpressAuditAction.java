@@ -8,6 +8,7 @@ import cn.edu.xmu.oomall.aftersale.controller.dto.PackageResponseDTO;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
 import cn.edu.xmu.oomall.aftersale.service.strategy.action.AuditAction;
+import cn.edu.xmu.oomall.aftersale.service.strategy.config.ActionResult;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,13 +17,14 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Slf4j
 @Component("expressAuditAction")
+@SuppressWarnings("unchecked")
 public class ExpressAuditAction implements AuditAction {
 
     @Resource
     private ExpressClient expressClient;
 
     @Override
-    public Integer execute(AftersaleOrder bo, String conclusion) {
+    public <T> ActionResult<T> execute(AftersaleOrder bo, String conclusion) {
         log.info("[ExpressAuditAction] 命中退换货审核策略，开始执行... boId={}, type={}", bo.getId(), bo.getType());
 
         try {
@@ -84,6 +86,7 @@ public class ExpressAuditAction implements AuditAction {
             throw new BusinessException(ReturnNo.REMOTE_SERVICE_FAIL, "创建退货运单失败");
         }
 
-        return AftersaleOrder.UNCHECK;
+        return (ActionResult<T>) ActionResult.success(null, AftersaleOrder.UNCHECK);
+
     }
 }
