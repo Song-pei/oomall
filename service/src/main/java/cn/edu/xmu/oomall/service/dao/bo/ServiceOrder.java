@@ -282,47 +282,6 @@ public class ServiceOrder extends OOMallObject implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-    public Long getShopId() { return shopId; }
-    public void setShopId(Long shopId) { this.shopId = shopId; }
-
-    public Byte getType() { return type; }
-    public void setType(Byte type) { this.type = type; }
-
-    public Byte getStatus() { return status; }
-    public void setStatus(Byte status) { this.status = status; }
-
-    public String getConsignee() { return consignee; }
-    public void setConsignee(String consignee) { this.consignee = consignee; }
-
-    public String getMobile() { return mobile; }
-    public void setMobile(String mobile) { this.mobile = mobile; }
-
-    public Long getRegionId() { return regionId; }
-    public void setRegionId(Long regionId) { this.regionId = regionId; }
-
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-
-    public Long getMaintainerId() { return maintainerId; }
-    public void setMaintainerId(Long maintainerId) { this.maintainerId = maintainerId; }
-
-    public String getMaintainerName() { return maintainerName; }
-    public void setMaintainerName(String maintainerName) { this.maintainerName = maintainerName; }
-
-    public String getMaintainerMobile() { return maintainerMobile; }
-    public void setMaintainerMobile(String maintainerMobile) { this.maintainerMobile = maintainerMobile; }
-
-    public String getResult() { return result; }
-    public void setResult(String result) { this.result = result; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
-
-    public String getSerialNo() { return serialNo; }
-    public void setSerialNo(String serialNo) { this.serialNo = serialNo; }
 
     public Long getCreatorId() {
         return creatorId;

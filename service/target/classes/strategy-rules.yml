@@ -26,11 +26,12 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "寄件待接受取消"
-    # 寄件(1) + 待收件(1) ->ExpressCancelAction
-    #
-    #请输入文本
-    #请输入文本
-    #
+    # 寄件(1) + 待收件(2) ->ExpressCancelAction
+    - type: 1
+      status: 2
+      opt: "CANCEL"
+      bean-name: "interceptingExpressCancelAction"
+      desc: "寄件待收件取消"
     # 寄件(1) + 待派工(1) ->ExpressCancelAction
     - type: 1
       status: 1
