@@ -10,6 +10,7 @@ import cn.edu.xmu.oomall.service.mapper.po.ServiceOrderPo;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.Objects;
@@ -21,11 +22,14 @@ import static cn.edu.xmu.javaee.core.model.Constants.IDNOTEXIST;
 @Slf4j
 @RequiredArgsConstructor
 public class ServiceOrderDao {
+    @Autowired
+    private ServiceProviderDao serviceProviderDao;
 
     private final ServiceOrderPoMapper serviceOrderPoMapper;
 
     public void build(ServiceOrder bo) {
         bo.setServiceOrderDao(this);
+        bo.setServiceProviderDao(this.serviceProviderDao);
     }
 
     public ServiceOrder insert(ServiceOrder bo, UserToken user) {

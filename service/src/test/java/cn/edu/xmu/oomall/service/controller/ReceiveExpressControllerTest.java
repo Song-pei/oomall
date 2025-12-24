@@ -112,8 +112,10 @@ class ReceiveExpressControllerTest {
     @DisplayName("验收场景3：验收不合格 - 触发取消逻辑 (集成测试)")
     void receiveExpress_Rejected() throws Exception {
         // 1. 准备数据：初始状态为 UNCHECK (2)
-        jdbcTemplate.execute("INSERT INTO service_service (id, status, type, gmt_create) " +
-                "VALUES (2002, 2, 0, NOW())");
+        jdbcTemplate.execute("INSERT INTO service_provider (id, name) " +
+                "VALUES (101, '测试服务商')");
+        jdbcTemplate.execute("INSERT INTO service_service (id, maintainer_id,status, type, gmt_create) " +
+                "VALUES (2002, 101,2, 0, NOW())");
 
         // 2. 构造请求：验收不合格
         ReceiveExpressDto dto = new ReceiveExpressDto();

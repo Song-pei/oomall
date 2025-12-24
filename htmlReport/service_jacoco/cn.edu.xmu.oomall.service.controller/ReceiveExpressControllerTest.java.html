@@ -112,101 +112,103 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     @DisplayName(&quot;验收场景3：验收不合格 - 触发取消逻辑 (集成测试)&quot;)
     void receiveExpress_Rejected() throws Exception {
         // 1. 准备数据：初始状态为 UNCHECK (2)
-<span class="fc" id="L115">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, status, type, gmt_create) &quot; +</span>
-                &quot;VALUES (2002, 2, 0, NOW())&quot;);
+<span class="fc" id="L115">        jdbcTemplate.execute(&quot;INSERT INTO service_provider (id, name) &quot; +</span>
+                &quot;VALUES (101, '测试服务商')&quot;);
+<span class="fc" id="L117">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, maintainer_id,status, type, gmt_create) &quot; +</span>
+                &quot;VALUES (2002, 101,2, 0, NOW())&quot;);
 
         // 2. 构造请求：验收不合格
-<span class="fc" id="L119">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
-<span class="fc" id="L120">        dto.setResult(&quot;外壳破损&quot;);</span>
-<span class="fc" id="L121">        dto.setAccepted(false);</span>
+<span class="fc" id="L121">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
+<span class="fc" id="L122">        dto.setResult(&quot;外壳破损&quot;);</span>
+<span class="fc" id="L123">        dto.setAccepted(false);</span>
 
         // 3. 执行请求
-<span class="fc" id="L124">        mockMvc.perform(post(RECEIVE_URL, 1, 2002)</span>
-<span class="fc" id="L125">                        .contentType(MediaType.APPLICATION_JSON)</span>
-<span class="fc" id="L126">                        .content(objectMapper.writeValueAsString(dto)))</span>
-<span class="fc" id="L127">                .andExpect(status().isOk())</span>
-<span class="fc" id="L128">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L126">        mockMvc.perform(post(RECEIVE_URL, 1, 2002)</span>
+<span class="fc" id="L127">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L128">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L129">                .andExpect(status().isOk())</span>
+<span class="fc" id="L130">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
 
         // 4. 关键：刷新持久化上下文
         // 因为 BO 内部执行了 this.status = UNASSIGNED 以及 cancel 策略里的更新
-<span class="fc" id="L132">        entityManager.flush();</span>
-<span class="fc" id="L133">        entityManager.clear();</span>
+<span class="fc" id="L134">        entityManager.flush();</span>
+<span class="fc" id="L135">        entityManager.clear();</span>
 
         // 5. 验证结果
         // 验收不合格后，BO 会先设为 UNASSIGNED(1)，然后执行 cancel。
         // 我们验证最终状态是否不再是 UNCHECK(2)
-<span class="fc" id="L138">        Integer finalStatus = jdbcTemplate.queryForObject(</span>
+<span class="fc" id="L140">        Integer finalStatus = jdbcTemplate.queryForObject(</span>
                 &quot;SELECT status FROM service_service WHERE id = 2002&quot;, Integer.class);
 
-<span class="fc" id="L141">        System.out.println(&quot;验收不合格后的最终状态: &quot; + finalStatus);</span>
+<span class="fc" id="L143">        System.out.println(&quot;验收不合格后的最终状态: &quot; + finalStatus);</span>
 
         // 校验逻辑：状态不应该是初始的 2，也不应该是验收成功的 1 (如果 cancel 改变了状态)
         // 假设 CANCELLED 状态是某个特定值，比如 4
         // org.junit.jupiter.api.Assertions.assertEquals(4, finalStatus);
 
         // 如果你不确定具体的取消状态码，至少验证它成功离开了待验收状态
-<span class="fc" id="L148">        org.junit.jupiter.api.Assertions.assertNotEquals(2, finalStatus, &quot;状态应已离开待验收状态&quot;);</span>
-<span class="fc" id="L149">    }</span>
+<span class="fc" id="L150">        org.junit.jupiter.api.Assertions.assertNotEquals(2, finalStatus, &quot;状态应已离开待验收状态&quot;);</span>
+<span class="fc" id="L151">    }</span>
     @Test
     @DisplayName(&quot;验收场景4：用户Token为空时的默认值覆盖&quot;)
     void receiveExpress_UserTokenNull() throws Exception {
         // 1. 准备数据 (status=2 为 UNCHECK)
-<span class="fc" id="L154">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, status, type, gmt_create) &quot; +</span>
+<span class="fc" id="L156">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, status, type, gmt_create) &quot; +</span>
                 &quot;VALUES (2004, 2, 0, NOW())&quot;);
 
-<span class="fc" id="L157">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
-<span class="fc" id="L158">        dto.setResult(&quot;Token为空测试&quot;);</span>
-<span class="fc" id="L159">        dto.setAccepted(true);</span>
+<span class="fc" id="L159">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
+<span class="fc" id="L160">        dto.setResult(&quot;Token为空测试&quot;);</span>
+<span class="fc" id="L161">        dto.setAccepted(true);</span>
 
         // 2. 执行请求（不显式模拟注入 UserToken，触发 Controller 内部的默认值逻辑）
-<span class="fc" id="L162">        mockMvc.perform(post(RECEIVE_URL, 1, 2004)</span>
-<span class="fc" id="L163">                        .contentType(MediaType.APPLICATION_JSON)</span>
-<span class="fc" id="L164">                        .content(objectMapper.writeValueAsString(dto)))</span>
-<span class="fc" id="L165">                .andExpect(status().isOk())</span>
-<span class="fc" id="L166">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
+<span class="fc" id="L164">        mockMvc.perform(post(RECEIVE_URL, 1, 2004)</span>
+<span class="fc" id="L165">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L166">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L167">                .andExpect(status().isOk())</span>
+<span class="fc" id="L168">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.OK.getErrNo()));</span>
 
         // 3. 验证修改人 ID 是否被设为了默认的 1L (modifier_id)
-<span class="fc" id="L169">        entityManager.flush();</span>
-<span class="fc" id="L170">        entityManager.clear();</span>
+<span class="fc" id="L171">        entityManager.flush();</span>
+<span class="fc" id="L172">        entityManager.clear();</span>
         // 3. 验证修改人 ID
-<span class="fc" id="L172">        Long modifierId = jdbcTemplate.queryForObject(</span>
+<span class="fc" id="L174">        Long modifierId = jdbcTemplate.queryForObject(</span>
                 &quot;SELECT modifier_id FROM service_service WHERE id = 2004&quot;, Long.class);
 
         // 既然日志显示系统自动填充了实体 ID (2004)，我们就断言它不为空，
-<span class="fc" id="L176">        org.junit.jupiter.api.Assertions.assertNotNull(modifierId, &quot;修改人ID不应为空&quot;);</span>
+<span class="fc" id="L178">        org.junit.jupiter.api.Assertions.assertNotNull(modifierId, &quot;修改人ID不应为空&quot;);</span>
 
-<span class="fc" id="L178">    }</span>
+<span class="fc" id="L180">    }</span>
     @Test
     @DisplayName(&quot;验收场景5：系统内部错误 (触发 catch Exception)&quot;)
     void receiveExpress_InternalError() throws Exception {
         // 1. 准备数据
-<span class="fc" id="L183">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, status, type, gmt_create) &quot; +</span>
+<span class="fc" id="L185">        jdbcTemplate.execute(&quot;INSERT INTO service_service (id, status, type, gmt_create) &quot; +</span>
                 &quot;VALUES (2005, 2, 0, NOW())&quot;);
 
         // 2. 关键：使用正确的匹配器处理基本类型，防止 NPE 和打桩失败
         // 使用 doThrow 语法对 Spy 进行打桩
-<span class="fc" id="L188">        Mockito.doThrow(new RuntimeException(&quot;Database Connection Timeout&quot;))</span>
-<span class="fc" id="L189">                .when(serviceOrderService).receiveExpress(</span>
-<span class="fc" id="L190">                        anyLong(),      // did (Long)</span>
-<span class="fc" id="L191">                        anyLong(),      // id (Long)</span>
-<span class="fc" id="L192">                        any(),          // result (String)</span>
-<span class="fc" id="L193">                        anyBoolean(),   // accepted (boolean) - 关键点！</span>
-<span class="fc" id="L194">                        any()           // user (UserToken)</span>
+<span class="fc" id="L190">        Mockito.doThrow(new RuntimeException(&quot;Database Connection Timeout&quot;))</span>
+<span class="fc" id="L191">                .when(serviceOrderService).receiveExpress(</span>
+<span class="fc" id="L192">                        anyLong(),      // did (Long)</span>
+<span class="fc" id="L193">                        anyLong(),      // id (Long)</span>
+<span class="fc" id="L194">                        any(),          // result (String)</span>
+<span class="fc" id="L195">                        anyBoolean(),   // accepted (boolean) - 关键点！</span>
+<span class="fc" id="L196">                        any()           // user (UserToken)</span>
                 );
 
-<span class="fc" id="L197">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
-<span class="fc" id="L198">        dto.setResult(&quot;异常测试&quot;);</span>
-<span class="fc" id="L199">        dto.setAccepted(true);</span>
+<span class="fc" id="L199">        ReceiveExpressDto dto = new ReceiveExpressDto();</span>
+<span class="fc" id="L200">        dto.setResult(&quot;异常测试&quot;);</span>
+<span class="fc" id="L201">        dto.setAccepted(true);</span>
 
         // 3. 执行请求并验证
-<span class="fc" id="L202">        mockMvc.perform(post(RECEIVE_URL, 1, 2005)</span>
-<span class="fc" id="L203">                        .contentType(MediaType.APPLICATION_JSON)</span>
-<span class="fc" id="L204">                        .content(objectMapper.writeValueAsString(dto)))</span>
-<span class="fc" id="L205">                .andExpect(status().isInternalServerError())</span>
-<span class="fc" id="L206">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.INTERNAL_SERVER_ERR.getErrNo()));</span>
+<span class="fc" id="L204">        mockMvc.perform(post(RECEIVE_URL, 1, 2005)</span>
+<span class="fc" id="L205">                        .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L206">                        .content(objectMapper.writeValueAsString(dto)))</span>
+<span class="fc" id="L207">                .andExpect(status().isInternalServerError())</span>
+<span class="fc" id="L208">                .andExpect(jsonPath(&quot;$.errno&quot;).value(ReturnNo.INTERNAL_SERVER_ERR.getErrNo()));</span>
 
         // 4. 执行完后必须重置，否则会污染后续可能的测试运行
-<span class="fc" id="L209">        Mockito.reset(serviceOrderService);</span>
-<span class="fc" id="L210">    }</span>
+<span class="fc" id="L211">        Mockito.reset(serviceOrderService);</span>
+<span class="fc" id="L212">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -2,6 +2,7 @@ package cn.edu.xmu.oomall.service.service.strategy.impl.accept;
 
 import cn.edu.xmu.javaee.core.model.UserToken;
 import cn.edu.xmu.oomall.service.dao.bo.ServiceOrder;
+import cn.edu.xmu.oomall.service.dao.bo.ServiceProvider;
 import cn.edu.xmu.oomall.service.service.strategy.action.AcceptAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("simpleAcceptAction")
 public class SimpleAcceptAction implements AcceptAction {
-    public Byte execute(ServiceOrder serviceOrder, UserToken user)
+    public Byte execute(ServiceOrder serviceOrder, ServiceProvider serviceProvider,UserToken user)
     {
        return  serviceOrder.UNASSIGNED;
     }
