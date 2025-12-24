@@ -37,7 +37,7 @@ public class AftersaleOrderService {
 
 
     /**
-     * 根据ID查询售后单详情
+     * 管理员根据ID查询售后单详情
      */
     public AftersaleOrder getAftersaleById(Long shopId, Long id, UserToken user) {
         // 1. 调用 DAO 查询 PO 对象
