@@ -100,7 +100,6 @@ public class ShopServiceOrderControllerTest {
 
     private ServiceOrderPo createPo(Long id, Long shopId, Byte status, String result, Long expressId) {
         ServiceOrderPo po = new ServiceOrderPo();
-        po.setId(id);
         po.setShopId(shopId);
         po.setStatus(status);
         po.setResult(result);
@@ -128,7 +127,7 @@ public class ShopServiceOrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.errno", is(ReturnNo.OK.getErrNo())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id", is(1001)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id", is(po.getId().intValue())))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.shopId", is(100)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.consignee", is("张三")));
     }

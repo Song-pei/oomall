@@ -195,11 +195,6 @@ public class ServiceOrderController {
             user.setDepartId(0L);
         }
 
-        // 显式校验退回说明，避免空结果导致误判为成功退回
-        if (dto == null || dto.getResult() == null || dto.getResult().isBlank()) {
-            log.warn("服务单退回失败: id={}, result 为空", id);
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
-        }
 
         try {
             serviceOrderService.backServiceOrder(did, id, dto.getResult(), user);
