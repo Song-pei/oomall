@@ -40,7 +40,7 @@ public class CustomerController {
             UserToken user) {
         log.info("收到顾客取消售后单请求:  id={}, user={}",  id, user);
 
-        // 如果没有登录（或者测试环境下），手动创建一个模拟的顾客
+        // 如果没有登录（测试环境下），手动创建一个模拟的顾客
         if (user == null || user.getId() == null || user.getName() == null) {
             log.warn("检测到用户信不完整 (id={}, name={})，启用 Mock 用户",
                     (user != null ? user.getId() : "null"),

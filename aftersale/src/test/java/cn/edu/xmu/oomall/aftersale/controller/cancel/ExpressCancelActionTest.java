@@ -45,9 +45,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         })
 @AutoConfigureMockMvc
 @Transactional(propagation = Propagation.REQUIRED)
-@Import(ExpressCancelActionControllerTest.MockConfig.class)
+@Import(ExpressCancelActionTest.MockConfig.class)
 @Rollback(true)
-public class ExpressCancelActionControllerTest {
+public class ExpressCancelActionTest {
 
     @TestConfiguration
     static class MockConfig {

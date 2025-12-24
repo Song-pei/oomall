@@ -10,7 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class SimpleCancelActionControllerTest {
+public class SimpleCancelActionTest {
     @InjectMocks
     private SimpleCancelAction simpleCancelAction;
 
