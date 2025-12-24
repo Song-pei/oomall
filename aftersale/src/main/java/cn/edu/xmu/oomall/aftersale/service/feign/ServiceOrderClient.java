@@ -1,5 +1,6 @@
 package cn.edu.xmu.oomall.aftersale.service.feign;
 
+import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceFind;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCancelDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderCreateDTO;
 import cn.edu.xmu.oomall.aftersale.controller.dto.ServiceOrderResponseDTO;
@@ -16,10 +17,18 @@ public interface ServiceOrderClient {
             @RequestHeader(value = "authorization", required = false) String token,
             @RequestBody ServiceOrderCreateDTO payload
     );
-    @PutMapping("/service/{id}/cancel")
+    @PutMapping("/maintainers/{did}/service/{id}/cancel")
     InternalReturnObject<ServiceOrderResponseDTO> customerCancelServiceOrder(
+            @PathVariable("did") Long did,
             @PathVariable("id") Long serviceOrderId,
             @RequestHeader(value = "authorization",required = false) String token,
             @RequestBody ServiceOrderCancelDTO payload
+    );
+    ///根据服务单id,返回dto  service
+    @GetMapping("/shops/{did}/services/{id}")
+    InternalReturnObject<ServiceFind> getServiceOrder(
+            @PathVariable("did")Long shopId,
+            @PathVariable("id")Long serviceOrderId,
+            @RequestHeader(value = "authorization",required = false) String token
     );
 }

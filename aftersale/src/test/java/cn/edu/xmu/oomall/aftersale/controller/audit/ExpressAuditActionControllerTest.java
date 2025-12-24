@@ -11,6 +11,7 @@ import cn.edu.xmu.oomall.aftersale.dao.AftersaleOrderDao;
 import cn.edu.xmu.oomall.aftersale.dao.bo.AftersaleOrder;
 import cn.edu.xmu.oomall.aftersale.mapper.po.AftersaleOrderPo;
 import cn.edu.xmu.oomall.aftersale.service.feign.ExpressClient;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+@Slf4j
 /**
  * 专门用于测试 ExpressAuditAction 集成流程的测试类
  */
@@ -129,7 +130,7 @@ public class ExpressAuditActionControllerTest {
         // 4. 验证数据库
         AftersaleOrderPo updatedPo = aftersaleOrderDao.findById(targetId);
         assertEquals(AftersaleOrder.UNCHECK, updatedPo.getStatus());
-        assertEquals(expectedExpressId, updatedPo.getExpressId());
+        assertEquals(expectedExpressId, updatedPo.getCustomerExpressId());
 
     }
 

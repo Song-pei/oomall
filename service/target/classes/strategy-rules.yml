@@ -7,9 +7,9 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "上门待接受取消"
-    # 上门(0) + 待派工(2) ->SimpleCancelAction
+    # 上门(0) + 待派工(1) ->SimpleCancelAction
     - type: 0
-      status: 2
+      status: 1
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "上门待派工取消"
@@ -26,14 +26,15 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "simpleCancelAction"
       desc: "寄件待接受取消"
-    # 寄件(1) + 待收件(1) ->ExpressCancelAction
-    #
-    #请输入文本
-    #请输入文本
-    #
-    # 寄件(1) + 待派工(2) ->ExpressCancelAction
+    # 寄件(1) + 待收件(2) ->ExpressCancelAction
     - type: 1
       status: 2
+      opt: "CANCEL"
+      bean-name: "interceptingExpressCancelAction"
+      desc: "寄件待收件取消"
+    # 寄件(1) + 待派工(1) ->ExpressCancelAction
+    - type: 1
+      status: 1
       opt: "CANCEL"
       bean-name: "expressCancelAction"
       desc: "寄件待派工取消"
@@ -43,3 +44,31 @@ ser-vice:
       opt: "CANCEL"
       bean-name: "expressCancelAction"
       desc: "寄件维修中取消"
+
+    # 完成服务
+    # 上门(0) + 维修中(3) -> SimpleFinishAction
+    - type: 0
+      status: 3
+      opt: "FINISH"
+      bean-name: "simpleFinishAction"
+      desc: "上门维修完成"
+    # 寄件(1) + 维修中(3) -> ExpressFinishAction
+    - type: 1
+      status: 3
+      opt: "FINISH"
+      bean-name: "expressFinishAction"
+      desc: "寄件维修完成"
+
+    # 接受服务单
+    # 上门(0) + 待接受(0) -> SimpleAcceptAction
+    - type: 0
+      status: 0
+      opt: "ACCEPT"
+      bean-name: "simpleAcceptAction"
+      desc: "上门维修接受"
+    # 寄件(1) + 待接受(0) -> ExpressAcceptAction
+    - type: 1
+      status: 0
+      opt: "ACCEPT"
+      bean-name: "expressAcceptAction"
+      desc: "寄件维修接受"

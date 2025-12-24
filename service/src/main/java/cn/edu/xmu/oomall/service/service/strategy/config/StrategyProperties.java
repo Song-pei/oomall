@@ -15,8 +15,8 @@ public class StrategyProperties {
 
     @Data
     public static class Rule {
-        private Integer type;
-        private Integer status;
+        private Byte type;
+        private Byte status;
         private String opt;       // "AUDIT" 或 "CANCEL"..............
         private String beanName;  // Spring Bean 的名字
         private String desc;

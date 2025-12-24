@@ -79,7 +79,7 @@ public class AftersaleOrderService {
         // 7. 持久化
         aftersaleOrderDao.update(po);
 
-        log.info("[Service] 审核完成: boId={}, 结果={}, reason={}", id, confirm, reason);
+        log.info("[ServiceFind] 审核完成: boId={}, 结果={}, reason={}", id, confirm, reason);
     }
 
     /**
@@ -117,7 +117,7 @@ public class AftersaleOrderService {
         // 7. 持久化
         aftersaleOrderDao.update(po);
 
-        log.info("[Service] 取消完成: boId={}, 新状态={}", id, po.getStatus());
+        log.info("[ServiceFind] 取消完成: boId={}, 新状态={}", id, po.getStatus());
     }
 
 

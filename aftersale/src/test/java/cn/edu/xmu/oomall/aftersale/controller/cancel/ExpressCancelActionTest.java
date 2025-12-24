@@ -45,9 +45,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         })
 @AutoConfigureMockMvc
 @Transactional(propagation = Propagation.REQUIRED)
-@Import(ExpressCancelActionControllerTest.MockConfig.class)
+@Import(ExpressCancelActionTest.MockConfig.class)
 @Rollback(true)
-public class ExpressCancelActionControllerTest {
+public class ExpressCancelActionTest {
 
     @TestConfiguration
     static class MockConfig {
@@ -80,7 +80,7 @@ public class ExpressCancelActionControllerTest {
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
         bo.setType(1);                       // 类型只能是0/1
         bo.setStatus(AftersaleOrder.UNCHECK); // 待验收
-        bo.setExpressId(9999L);              // 模拟已创建物流单
+        bo.setCustomerExpressId(9999L);              // 模拟已创建物流单
         bo.setCustomerName("测试用户李四");
         bo.setCustomerMobile("13987654321");
 

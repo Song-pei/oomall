@@ -5,6 +5,9 @@ management:
         include: "*"
 
 spring:
+  config:
+    import:
+      - optional:classpath:strategy-rules.yml
   application:
     name: service-service
 
@@ -79,3 +82,6 @@ logging:
   level:
     cn.edu.xmu.javaee.core: debug
     cn.edu.xmu.oomall.service: debug
+logistics-module:
+  url: http://localhost:9090
+

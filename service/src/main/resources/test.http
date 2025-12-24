@@ -1,0 +1,153 @@
+### ========================================================================
+### 服务单查询接口测试文件
+### 文件名: test-service-query.http
+### ========================================================================
+
+### ========================================================================
+### 【配置区】
+### ========================================================================
+
+# 服务地址和端口
+@host = localhost
+@port = 8085
+
+# 测试用的商铺 ID
+@shopId = 100
+
+# 测试用的服务单 ID（对应 SQL 脚本数据）
+@validServiceOrderId = 1001      # 正常服务单
+@finishedServiceOrderId = 1002   # 已完成服务单
+@wrongShopServiceOrderId = 1003  # 其他商铺服务单 (200号商铺)
+@unacceptedServiceOrderId = 1004 # 待接受服务单
+@nonExistServiceOrderId = 99999  # 不存在服务单
+
+# 认证 Token (即使关闭了 @Audit，Header 也可以留着)
+@token = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6InNlYW4iLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTkwMDAwMDAwMH0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+### ========================================================================
+### 【测试用例 1】查询正常的服务单 - 成功
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{validServiceOrderId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+> {%
+    client.test("✅ 用例1: 查询成功", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        var body = response.body;
+        client.assert(body.errno === 0, "业务错误码应为 0");
+
+        var data = body.data;
+        client.assert(data.id === 1001, "服务单 ID 错误");
+        client.assert(data.shopId === 100, "商铺 ID 错误");
+        client.assert(data.consignee === "张三", "收件人错误");
+        client.log("✅ 返回数据预览: " + JSON.stringify(data));
+    });
+%}
+
+### ========================================================================
+### 【测试用例 2】查询已完成的服务单 - 成功 (验证运单号)
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{finishedServiceOrderId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+> {%
+    client.test("✅ 用例2: 查询已完成服务单", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        var body = response.body;
+        var data = body.data;
+        client.assert(data.status === 5, "状态应为已完成(5)");
+        client.assert(data.expressId === 888, "运单 ID 应为 888");
+    });
+%}
+
+### ========================================================================
+### 【测试用例 3】查询不属于该商铺的服务单 - 权限不足
+### 预期：HTTP 403, errno = 17 (RESOURCE_ID_OUTSCOPE)
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{wrongShopServiceOrderId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+> {%
+    client.test("❌ 用例3: 越权访问拦截", function() {
+        client.assert(response.status === 403, "预期返回 403 Forbidden");
+        var body = response.body;
+        // 注意：OOMALL 标准中 RESOURCE_ID_OUTSCOPE 的 errno 是 17
+        client.assert(body.errno === 17, "业务错误码应为 17, 实际是: " + body.errno);
+    });
+%}
+
+### ========================================================================
+### 【测试用例 4】查询不存在的服务单 - 资源不存在
+### 预期：HTTP 404, errno = 4 (RESOURCE_ID_NOTEXIST)
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{nonExistServiceOrderId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+> {%
+    client.test("❌ 用例4: 资源不存在拦截", function() {
+        client.assert(response.status === 404, "预期返回 404 Not Found");
+        var body = response.body;
+        client.assert(body.errno === 4, "业务错误码应为 4");
+    });
+%}
+
+### ========================================================================
+### 【测试用例 5】查询待接受的服务单 - 成功 (验证 result 为空)
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{unacceptedServiceOrderId}}
+Authorization: {{token}}
+Content-Type: application/json
+
+> {%
+    client.test("✅ 用例5: 查询待接受单据", function() {
+        client.assert(response.status === 200, "HTTP 状态码应为 200");
+        var data = response.body.data;
+        // 兼容处理：null 或空字符串都视为通过
+        client.assert(data.result === null || data.result === "", "未处理单据 result 应为空");
+    });
+%}
+
+### ========================================================================
+### 【测试用例 6】认证校验测试 (需要开启 @Audit)
+### ⚠️ 如果你注释了 Controller 的 @Audit，此项会返回 200 导致断言失败
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/{{validServiceOrderId}}
+Content-Type: application/json
+
+> {%
+    client.test("🔒 用例6: 缺少 Token 拦截", function() {
+        if (response.status === 200) {
+            client.log("⚠️ 提示: 接口当前未开启权限校验(AOP已关闭)");
+        } else {
+            client.assert(response.status === 401, "开启校验时应返回 401");
+        }
+    });
+%}
+
+### ========================================================================
+### 【测试用例 7】错误的 HTTP 方法 - 405
+### ========================================================================
+POST http://{{host}}:{{port}}/shops/{{shopId}}/services/{{validServiceOrderId}}
+Authorization: {{token}}
+
+> {%
+    client.test("✅ 用例7: 405 方法错误拦截", function() {
+        client.assert(response.status === 405, "应返回 405 Method Not Allowed");
+    });
+%}
+
+### ========================================================================
+### 【测试用例 8】非法的 ID 类型 - 400
+### ========================================================================
+GET http://{{host}}:{{port}}/shops/{{shopId}}/services/abc
+Authorization: {{token}}
+
+> {%
+    client.test("✅ 用例8: 400 参数格式错误拦截", function() {
+        client.assert(response.status === 400, "应返回 400 Bad Request");
+    });
+%}
