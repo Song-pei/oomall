@@ -181,11 +181,11 @@ public class ServiceOrderController {
      * @param user    登录用户
      * @return
      */
-    @PutMapping("/cancel")
+        @PutMapping("/cancel")
     public ReturnObject backServiceOrder(
             @PathVariable("did") Long did,
             @PathVariable("id") Long id,
-            @RequestBody(required = false) BackServiceOrderDto dto,
+            @Validated(NewGroup.class) @RequestBody BackServiceOrderDto dto,
             UserToken user
     ) {
         if (user == null || user.getId() == null) {
@@ -194,9 +194,15 @@ public class ServiceOrderController {
             user.setName("admin-test");
             user.setDepartId(0L);
         }
+
+        // 显式校验退回说明，避免空结果导致误判为成功退回
+        if (dto == null || dto.getResult() == null || dto.getResult().isBlank()) {
+            log.warn("服务单退回失败: id={}, result 为空", id);
+            return new ReturnObject(ReturnNo.FIELD_NOTVALID);
+        }
+
         try {
-            String result = dto == null ? null : dto.getResult();
-            serviceOrderService.backServiceOrder(did, id, result, user);
+            serviceOrderService.backServiceOrder(did, id, dto.getResult(), user);
             log.info("服务单退回成功: id={}", id);
             return new ReturnObject(ReturnNo.OK);
         } catch (BusinessException e) {

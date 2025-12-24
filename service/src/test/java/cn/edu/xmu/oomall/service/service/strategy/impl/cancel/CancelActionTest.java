@@ -160,4 +160,32 @@ class CancelActionTest {
                 // 当前控制器兜底为 INTERNAL_SERVER_ERR
                 .andExpect(jsonPath("$.errno", is(ReturnNo.REMOTE_SERVICE_FAIL.getErrNo())));
     }
+
+    /** 场景6：状态不允许 - 已完成 FINISH=5 */
+    @Test
+    void cancel_StateNotAllow_WhenFinished() throws Exception {
+        Long orderId = 901L;
+        jdbcTemplate.execute("INSERT INTO service_service " +
+                "(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) " +
+                "VALUES (" + orderId + ", " + SHOP_ID + ", 5, 0, 350206, '已完成地址', '用户B', '13900000001', NOW())");
+
+        mockMvc.perform(post("/maintainers/{did}/services/{id}/cancel", MAINTAINER_ID, orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errno", is(ReturnNo.STATENOTALLOW.getErrNo())));
+    }
+
+    /** 场景7：未找到取消策略 (type 未配置) */
+    @Test
+    void cancel_NoStrategyFound() throws Exception {
+        Long orderId = 902L;
+        jdbcTemplate.execute("INSERT INTO service_service " +
+                "(id, shop_id, status, type, region_id, address, consignee, mobile, gmt_create) " +
+                "VALUES (" + orderId + ", " + SHOP_ID + ", 0, 9, 350206, '未配置策略地址', '用户C', '13900000002', NOW())");
+
+        mockMvc.perform(post("/maintainers/{did}/services/{id}/cancel", MAINTAINER_ID, orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errno", is(ReturnNo.FIELD_NOTVALID.getErrNo())));
+    }
 }

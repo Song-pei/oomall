@@ -76,4 +76,20 @@ public class BackServiceOrder {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errno").value(ReturnNo.STATENOTALLOW.getErrNo()));
     }
+
+    @Test
+    public void testBackServiceOrder_ResultNull() throws Exception {
+        Long nullResultId = TEST_ORDER_ID + 2;
+        jdbcTemplate.execute("DELETE FROM service_service WHERE id = " + nullResultId);
+        jdbcTemplate.execute("INSERT INTO service_service " +
+                "(id, maintainer_id, shop_id, region_id, address, consignee, mobile, status, type, gmt_create) " +
+                "VALUES (" + nullResultId + ", " + TEST_MAINTAINER_ID + ", " + TEST_SHOP_ID + ", " +
+                "350206, '回退空结果地址', '测试用户', '13900003333', 3, 0, NOW())");
+
+        mockMvc.perform(put("/maintainers/{did}/services/{id}/cancel", TEST_MAINTAINER_ID, nullResultId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")) // 未提供 result
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errno").value(ReturnNo.FIELD_NOTVALID.getErrNo()));
+    }
 }
