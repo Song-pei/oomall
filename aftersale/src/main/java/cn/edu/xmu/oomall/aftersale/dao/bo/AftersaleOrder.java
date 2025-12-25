@@ -19,10 +19,7 @@ import cn.edu.xmu.oomall.aftersale.service.strategy.config.StrategyRouter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Data
@@ -135,6 +132,14 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     @JsonIgnore
     public String getStatusName() {
         return STATUSNAMES.get(this.status);
+    }
+    public boolean CanBeCancel(){
+        if  (  !(Objects.equals(this.status, AftersaleOrder.UNAUDIT))
+            &&!(Objects.equals(this.status, AftersaleOrder.UNCHECK))
+            &&!(Objects.equals(this.status, AftersaleOrder.GENERATE_SERVICEORDER))) return false;
+
+        return true;
+
     }
 
     @Override
