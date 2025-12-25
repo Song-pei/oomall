@@ -113,10 +113,10 @@ public class AftersaleOrderService {
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
         //aftersaleOrderDao.build(bo);
         bo.setAftersaleOrderDao(aftersaleOrderDao);
-        if(!bo.CanBeCancel())
+       /* if(!bo.CanBeCancel())
         {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
-        }
+        }*/
 
         bo.customerCancel(strategyRouter, user);
 

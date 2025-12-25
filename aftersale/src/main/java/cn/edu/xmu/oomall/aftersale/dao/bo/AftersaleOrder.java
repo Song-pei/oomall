@@ -168,7 +168,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 审核售后单
      */
-    public ActionResult<?> audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter router, UserToken user) {
+    public ActionResult<?> audit(String conclusionIn, String reasonIn, boolean confirm, StrategyRouter strategyRouter, UserToken user) {
         if (!UNAUDIT.equals(this.status)) {
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许审核");
         }
@@ -188,7 +188,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
             this.conclusion = "同意";
             this.reason = null;
 
-            AuditAction action = router.route(this.type, this.status, "AUDIT", AuditAction.class);
+            AuditAction action = strategyRouter.route(this.type, this.status, "AUDIT", AuditAction.class);
 
             if (action == null) {
                 log.error("未找到审核策略: type={}, status={}", this.type, this.status);
@@ -223,8 +223,11 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 顾客取消售后单
      */
-    public ActionResult<?> customerCancel(StrategyRouter router, UserToken user) {
-        CancelAction action = router.route(this.type, this.status, "CANCEL", CancelAction.class);
+    public ActionResult<?> customerCancel(StrategyRouter strategyRouter, UserToken user) {
+
+        if(!this.CanBeCancel())  throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许取消");
+        CancelAction action = strategyRouter.route(this.type, this.status, "CANCEL", CancelAction.class);
+
 
         if (action == null) {
             log.warn("未找到取消策略: type={}, status={}", this.type, this.status);
@@ -256,7 +259,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     /**
      * 验收售后单
      */
-    public ActionResult<?> inspect(String exceptionDescription, boolean confirm, StrategyRouter router, UserToken user) {
+    public ActionResult<?> inspect(String exceptionDescription, boolean confirm, StrategyRouter strategyRouter, UserToken user) {
         if (!UNCHECK.equals(this.status)) {
             log.info("当前状态不允许验收: id={}, status={}", this.id, this.status);
             throw new BusinessException(ReturnNo.STATENOTALLOW, "当前状态不允许验收");
@@ -266,7 +269,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
 
         if (!confirm) {
             this.exceptionDescription = exceptionDescription;
-            InspectAction refuseAction = router.route(this.type, this.status, "REFUSEINSPECT", InspectAction.class);
+            InspectAction refuseAction = strategyRouter.route(this.type, this.status, "REFUSEINSPECT", InspectAction.class);
             if (refuseAction == null) {
                 log.error("未找到验收拒绝策略: type={}, status={}", this.type, this.status);
                 throw new BusinessException(ReturnNo.STATENOTALLOW, "未配置该类型的验收拒绝策略");
@@ -287,7 +290,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
         } else {
             this.exceptionDescription = null;
 
-            InspectAction action = router.route(this.type, this.status, "INSPECT", InspectAction.class);
+            InspectAction action = strategyRouter.route(this.type, this.status, "INSPECT", InspectAction.class);
 
             if (action == null) {
                 log.error("未找到验收通过策略: type={}, status={}", this.type, this.status);
