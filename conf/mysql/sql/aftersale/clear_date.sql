@@ -15,6 +15,7 @@ CREATE TABLE aftersale_aftersaleorder(
                                          customer_region_id BIGINT,
                                          customer_address VARCHAR(255),
                                          type INT DEFAULT 2,
+                                         service_order_type INT COMMENT '0:上门，1：寄件，2.线上',
                                          status INT DEFAULT 0,
                                          conclusion VARCHAR(200),
                                          reason VARCHAR(255),

@@ -29,7 +29,7 @@ public class FixAuditAction implements AuditAction {
 
         // 1. 组装参数
         ServiceOrderCreateDTO dto = ServiceOrderCreateDTO.builder()
-                .type(0) // 服务模块定义的类型常量
+                .type(bo.getServiceOrderType()) // 服务模块定义的类型常量
                 .consignee(ServiceOrderCreateDTO.Consignee.builder()
                         .name(bo.getCustomerName())
                         .mobile(bo.getCustomerMobile())

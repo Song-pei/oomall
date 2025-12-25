@@ -38,6 +38,7 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
     private Long shopExpressId;
 
     private Integer type; //0换货，1退货, 2维修
+    private Integer serviceOrderType;
     private Integer status;
     private String conclusion;
     private String reason;

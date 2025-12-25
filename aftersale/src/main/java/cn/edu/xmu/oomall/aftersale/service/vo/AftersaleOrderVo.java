@@ -25,6 +25,7 @@ public class AftersaleOrderVo {
 
 
     private Integer type;
+    private Integer serviceOrderType;
     private Integer status;
     private String conclusion;
     private String reason;
