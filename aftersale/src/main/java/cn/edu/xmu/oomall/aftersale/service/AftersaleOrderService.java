@@ -56,7 +56,8 @@ public class AftersaleOrderService {
             }
         }
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
-        aftersaleOrderDao.build(bo);
+        //aftersaleOrderDao.build(bo);
+        bo.setAftersaleOrderDao(aftersaleOrderDao);
         return bo;
     }
 
@@ -79,7 +80,8 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
-        aftersaleOrderDao.build(bo);
+        //aftersaleOrderDao.build(bo);
+        bo.setAftersaleOrderDao(aftersaleOrderDao);
 
         if (!Objects.equals(bo.getShopId(), shopId)) {
             log.warn("审核失败: 店铺不匹配, id={}, shopId={}, targetShopId={}", id, bo.getShopId(), shopId);
@@ -109,7 +111,8 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
-        aftersaleOrderDao.build(bo);
+        //aftersaleOrderDao.build(bo);
+        bo.setAftersaleOrderDao(aftersaleOrderDao);
         if  (  !(Objects.equals(bo.getStatus(), AftersaleOrder.UNAUDIT))
                 &&!(Objects.equals(bo.getStatus(), AftersaleOrder.UNCHECK))
                 &&!(Objects.equals(bo.getStatus(), AftersaleOrder.GENERATE_SERVICEORDER))
@@ -131,7 +134,8 @@ public class AftersaleOrderService {
         AftersaleOrderPo po = aftersaleOrderDao.findById(id);
         if (po == null) { throw new BusinessException(ReturnNo.RESOURCE_ID_NOTEXIST, "售后单不存在");}
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
-        aftersaleOrderDao.build(bo);
+        //aftersaleOrderDao.build(bo);
+        bo.setAftersaleOrderDao(aftersaleOrderDao);
         return bo;
     }
 
@@ -149,8 +153,8 @@ public class AftersaleOrderService {
         }
 
         AftersaleOrder bo = CloneFactory.copy(new AftersaleOrder(), po);
-        aftersaleOrderDao.build(bo);
-
+        //aftersaleOrderDao.build(bo);
+        bo.setAftersaleOrderDao(aftersaleOrderDao);
         if (!Objects.equals(bo.getShopId(), shopId)) {
             log.warn("验收失败: 店铺不匹配, id={}, shopId={}, targetShopId={}", id, bo.getShopId(), shopId);
             throw new BusinessException(ReturnNo.RESOURCE_ID_OUTSCOPE, "无权操作该店铺订单");

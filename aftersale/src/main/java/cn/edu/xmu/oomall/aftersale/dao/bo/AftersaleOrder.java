@@ -157,7 +157,9 @@ public class AftersaleOrder extends OOMallObject implements Serializable {
         }
         this.setGmtModified(LocalDateTime.now());
     }
-
+   public void setAftersaleOrderDao(AftersaleOrderDao dao) {
+        this.dao = dao;
+   }
     /**
      * 审核售后单
      */

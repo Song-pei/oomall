@@ -35,11 +35,7 @@ public class AftersaleOrderDao {
 
     private final AftersaleOrderPoMapper aftersaleOrderPoMapper;
 
-    private AftersaleOrderDao aftersaleOrderDao;
-    public void build(AftersaleOrder bo) {
-        bo.setDao(this);
-    }
-
+   
     /**
      * 分页查询所有售后单
      * 增加 UserToken 参数用于权限隔离
